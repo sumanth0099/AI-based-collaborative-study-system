@@ -17,5 +17,14 @@
   "bugs": {
     "url": "https://github.com/bhavyasatyasri200/AI-based-collaborative-study-system/issues"
   },
-  "homepage": "https://github.com/bhavyasatyasri200/AI-based-collaborative-study-system#readme"
+  "homepage": "https://github.com/bhavyasatyasri200/AI-based-collaborative-study-system#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "pg": "^8.21.0",
+    "uuid": "^14.0.0"
+  }
 }
