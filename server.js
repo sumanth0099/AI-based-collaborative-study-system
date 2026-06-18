@@ -15,7 +15,14 @@
         })
       );
     const Authroutes = require("./src/routes/auth.routes.js")
-    app.use('/auth',Authroutes)
+    const NoteRoutes = require("./src/routes/note.routes.js")
+    const ResourceRoutes = require("./src/routes/resource.routes.js")
+    
+    app.use('/auth', Authroutes)
+    app.use('/api/notes', NoteRoutes)
+    app.use('/api/resources', ResourceRoutes)
+
+
     app.listen(3000, () => {
         console.log("Server is running on port 3000");
     })
