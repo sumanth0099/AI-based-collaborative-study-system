@@ -17,12 +17,24 @@
     const Authroutes = require("./src/routes/auth.routes.js")
     const NoteRoutes = require("./src/routes/note.routes.js")
     const ResourceRoutes = require("./src/routes/resource.routes.js")
-    
+    const FriendsRoutes = require("./src/routes/friends.routes.js")
     app.use('/auth', Authroutes)
     app.use('/api/notes', NoteRoutes)
     app.use('/api/resources', ResourceRoutes)
-
-
+    app.use('/api', FriendsRoutes)
+    app.use((err, req, res, next) => {
+      if (err instanceof SyntaxError &&
+          err.status === 400 &&
+          'body' in err) {
+  
+          return res.status(400).json({
+              success: false,
+              message: 'Invalid JSON format in request body'
+          });
+      }
+  
+      next(err);
+  });
     app.listen(3000, () => {
         console.log("Server is running on port 3000");
     })

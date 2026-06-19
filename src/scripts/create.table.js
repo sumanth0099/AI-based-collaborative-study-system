@@ -48,12 +48,11 @@ CREATE TABLE IF NOT EXISTS notes (
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`;
 
-const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDSHIPS (
+const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDS (
     id UUID PRIMARY KEY,
     userOneId UUID NOT NULL,
     userTwoId UUID NOT NULL,
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CHECK (userOneId < userTwoId),
     UNIQUE (userOneId, userTwoId)
 );`
 async function initDB() {
@@ -69,7 +68,7 @@ async function initDB() {
     console.log("Notes table ready");
 
     await pool.query(createFriendsTable);
-    console.log("Friendships table ready");
+    console.log("Friends table ready");
 
   } catch (err) {
     console.error("Error creating tables:", err);

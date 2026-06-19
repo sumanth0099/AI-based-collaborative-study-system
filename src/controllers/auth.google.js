@@ -81,7 +81,7 @@ require("dotenv").config('./src');
 
       res.json({
         message: "Login successful",
-        user: dbUser
+        userId: dbUser.id
       });
 }
  function googleAuthRedirect(req,res){

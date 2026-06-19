@@ -47,7 +47,7 @@ try{
         false // is_verified
       ])
       if(result.rowCount === 1){
-        return res.status(201).json({ message: "User registered successfully" });
+        return res.status(201).json({ message: "User registered successfully" ,userId});
       }
 }
 catch(err){
