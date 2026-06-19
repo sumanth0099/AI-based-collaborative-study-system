@@ -10,7 +10,9 @@ cloudinary.config({
 const uploadToCloudinary = (fileBuffer, folder = 'smart-study-companion') => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: folder },
+      { folder: folder ,
+        resource_type: "raw"
+      },
       (error, result) => {
         if (error) return reject(error);
         resolve(result);

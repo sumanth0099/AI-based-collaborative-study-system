@@ -136,6 +136,11 @@ const searchNotes = async (req, res) => {
             ORDER BY createdAt DESC;
         `;
         const result = await pool.query(query, [`%${q}%`]);
+            if (result.rows.length === 0) {
+        return res.status(404).json({
+            message: "No notes found"
+        });
+}
         res.status(200).json(result.rows);
     } catch (err) {
         console.error("Error searching notes:", err);
