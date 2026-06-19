@@ -17,10 +17,11 @@
     const Authroutes = require("./src/routes/auth.routes.js")
     const NoteRoutes = require("./src/routes/note.routes.js")
     const ResourceRoutes = require("./src/routes/resource.routes.js")
-    
+    const groupRoutes = require("./src/routes/studygroups.routes");
     app.use('/auth', Authroutes)
     app.use('/api/notes', NoteRoutes)
     app.use('/api/resources', ResourceRoutes)
+    app.use("/api/groups", groupRoutes)
 
 
     app.listen(3000, () => {
