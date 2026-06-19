@@ -41,7 +41,10 @@ const shareResource = async (req, res) => {
     }
 };
 
+
+
 module.exports = {
     uploadResource,
-    shareResource
+    shareResource,
+    
 };
