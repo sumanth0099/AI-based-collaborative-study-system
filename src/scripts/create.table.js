@@ -57,7 +57,7 @@ const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDS (
 );`
 
 const createFRIEND_REQUESTS  = `
-CREATE TABLE friend_requests (
+CREATE TABLE IF NOT EXISTS friend_requests (
     id UUID PRIMARY KEY,
     senderId UUID NOT NULL,
     receiverId UUID NOT NULL,
@@ -69,6 +69,19 @@ CREATE TABLE friend_requests (
     FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE,
 
     CHECK (senderId <> receiverId)
+);
+`;
+
+const createNotificationTable = `
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY,
+    receiverId UUID NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    isRead BOOLEAN DEFAULT FALSE,
+    createdAt TIMESTAMP NOT NULL,
+
+    FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE
 );
 `;
 async function initDB() {
@@ -88,6 +101,10 @@ async function initDB() {
 
     await pool.query(createFRIEND_REQUESTS);
     console.log("Friend Requests table ready");
+
+    await pool.query(createNotificationTable);
+    console.log("Notifications table ready");
+
   } catch (err) {
     console.error("Error creating tables:", err);
   } finally {
