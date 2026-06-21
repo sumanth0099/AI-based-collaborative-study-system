@@ -1,5 +1,13 @@
 const createID = require("../utils/generateuuid.js");
 const pool = require("../config.js");
+const postFriendRequest= async (req, res) => {
+    const {requesterId, recipientId} = req.body;
+    if(!requesterId || !recipientId) 
+        return res.status(400).json({ message: "Both requester and recipient IDs are required" });
+    if(requesterId === recipientId)
+        return res.status(400).json({ message: "Cannot send friend request to yourself" });
+    
+}
 const  postFriends = async (req, res) => {
     const {userOneId, userTwoId} = req.body;
     if(!userOneId || !userTwoId) {

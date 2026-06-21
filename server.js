@@ -1,43 +1,99 @@
-    const express = require("express")
-    const app = express()
-    const session = require("express-session")
-    app.use(express.json()) 
-    app.use(
-        session({
-          secret: "mySuperSecretKey", // used to sign cookie (IMPORTANT)
-          resave: false,              // don’t save if nothing changed
-          saveUninitialized: false,   // don’t create empty sessions
-          cookie: {
-            httpOnly: true,           // protects from JS access
-            secure: false,            // true only in HTTPS (production)
-            maxAge: 1000 * 60 * 60 * 24 // 1 day session
-          }
-        })
-      );
-    const Authroutes = require("./src/routes/auth.routes.js")
-    const NoteRoutes = require("./src/routes/note.routes.js")
-    const ResourceRoutes = require("./src/routes/resource.routes.js")
-    const FriendsRoutes = require("./src/routes/friends.routes.js")
-    const groupRoutes = require("./src/routes/studygroups.routes");
-    app.use('/auth', Authroutes)
-    app.use('/api/notes', NoteRoutes)
-    app.use('/api/resources', ResourceRoutes)
-    app.use("/api/groups", groupRoutes)
-    app.use('/api', FriendsRoutes)
-    
-    app.use((err, req, res, next) => {
-      if (err instanceof SyntaxError &&
-          err.status === 400 &&
-          'body' in err) {
-  
-          return res.status(400).json({
-              success: false,
-              message: 'Invalid JSON format in request body'
-          });
-      }
-  
-      next(err);
+const express = require("express");
+const app = express();
+const session = require("express-session");
+const http = require("http");
+const { Server } = require("socket.io");
+
+app.use(express.json());
+
+// ---------------- SESSION ----------------
+const sessionMiddleware = session({
+  secret: "mySuperSecretKey",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    maxAge: 1000 * 60 * 60 * 24
+  }
+});
+
+app.use(sessionMiddleware);
+
+// ---------------- ROUTES ----------------
+app.use('/auth', require("./src/routes/auth.routes.js"));
+app.use('/api/notes', require("./src/routes/note.routes.js"));
+app.use('/api/resources', require("./src/routes/resource.routes.js"));
+app.use('/api/groups', require("./src/routes/studygroups.routes"));
+app.use('/api', require("./src/routes/friends.routes.js"));
+
+// ---------------- ERROR HANDLER ----------------
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError &&
+      err.status === 400 &&
+      'body' in err) {
+
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON format in request body'
+    });
+  }
+
+  next(err);
+});
+
+// ---------------- SERVER + SOCKET ----------------
+const server = http.createServer(app);
+const io = new Server(server);
+
+// 🔥 MAP: userId -> socketId
+const userSocketMap = new Map();
+
+// ---------------- SOCKET MIDDLEWARE (SESSION) ----------------
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
+// ---------------- ATTACH USER ID TO SOCKET ----------------
+io.use((socket, next) => {
+  const session = socket.request.session;
+
+  if (!session || !session.userId) {
+    return next(new Error("Unauthorized: no session user"));
+  }
+
+  socket.userId = session.userId;
+  next();
+});
+
+// ---------------- CONNECTION ----------------
+io.on("connection", (socket) => {
+
+  console.log("User connected:", socket.userId);
+
+  // store user
+  userSocketMap.set(socket.userId, socket.id);
+
+  socket.on("message", (data) => {
+    socket.emit("message_received", data);
   });
-    app.listen(3000, () => {
-        console.log("Server is running on port 3000");
-    })
+
+  socket.on("disconnect", () => {
+    userSocketMap.delete(socket.userId);
+    console.log("User disconnected:", socket.userId);
+  });
+
+});
+
+// ---------------- EXPORTS (IMPORTANT for controllers) ----------------
+module.exports = {
+  app,
+  server,
+  io,
+  userSocketMap
+};
+
+// ---------------- START SERVER ----------------
+server.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
