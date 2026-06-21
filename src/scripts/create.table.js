@@ -55,6 +55,22 @@ const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDS (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (userOneId, userTwoId)
 );`
+
+const createFRIEND_REQUESTS  = `
+CREATE TABLE friend_requests (
+    id UUID PRIMARY KEY,
+    senderId UUID NOT NULL,
+    receiverId UUID NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    createdAt TIMESTAMP NOT NULL,
+    respondedAt TIMESTAMP,
+
+    FOREIGN KEY (senderId) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE,
+
+    CHECK (senderId <> receiverId)
+);
+`;
 async function initDB() {
   try {
     // Order matters because of foreign key constraints
@@ -70,6 +86,8 @@ async function initDB() {
     await pool.query(createFriendsTable);
     console.log("Friends table ready");
 
+    await pool.query(createFRIEND_REQUESTS);
+    console.log("Friend Requests table ready");
   } catch (err) {
     console.error("Error creating tables:", err);
   } finally {
