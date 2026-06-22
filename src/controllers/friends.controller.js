@@ -1,9 +1,44 @@
 const createID = require("../utils/generateuuid.js");
 const pool = require("../config.js");
 const socketManager = require("../socketManager");
+// const { json } = require("express");
 const io = socketManager.getIO();
 const { userSocketMap } = socketManager;
 
+const getMyReceivedRequests = async (req, res) => {
+  try {
+    const myid = req.session?.userId;
+
+    if (!myid) {
+      return res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
+
+    const query = `
+      SELECT fr.id AS request_id, u.id AS sender_id, u.name AS sender_name, fr.status, fr.createdAt
+      FROM friend_requests fr
+      JOIN users u ON fr.senderId = u.id
+      WHERE fr.receiverId = $1 AND fr.status = 'pending'
+    `;
+
+    const result = await pool.query(query, [myid]);
+
+    return res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      requests: result.rows
+    });
+
+  } catch (err) {
+    console.error("getMyRequests error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+}
 const postFriendRequest = async (req, res) => {
   try {
     const { recipientId } = req.body;
@@ -255,8 +290,108 @@ const handleFriendRequest = async (req, res) => {
       }
     };
 
+    const getAllUsers = async (req, res) => {
+      try {
+        const myid = req.session?.userId;
+    
+        if (!myid) {
+          return res.status(401).json({
+            message: "Unauthorized"
+          });
+        }
+    
+        const query = `
+          SELECT id, name, email, is_verified, createdAt,avatar
+          FROM users
+          WHERE id != $1
+        `;
+
+        const result = await pool.query(query, [myid]);
+        if(result.rows.length === 0){
+          return res.status(404).json({
+            success: false,
+            message: "No other users found"
+          });
+        }
+        return res.status(200).json({
+          success: true,
+          count: result.rows.length,
+          users: result.rows
+        });
+    
+      } catch (err) {
+        console.error("getAllUsers error:", err);
+    
+        return res.status(500).json({
+          success: false,
+          message: "Internal server error"
+        });
+      }
+    }
+    const searchUsers = async (req, res) => {
+      try {
+        const myId = req.session?.userId;
+    
+        if (!myId) {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized"
+          });
+        }
+    
+        const username = req.query.username?.trim();
+    
+        if (!username) {
+          return res.status(400).json({
+            success: false,
+            message: "Username is required"
+          });
+        }
+    
+        const limit = 10;
+        const offset = Number(req.query.offset) || 0;
+    
+        const result = await pool.query(
+          `
+          SELECT
+            id,
+            name,
+            email,
+            is_verified,
+            avatar,
+            createdAt AS "createdAt"
+          FROM users
+          WHERE id != $1
+            AND name ILIKE $2
+          ORDER BY name
+          LIMIT $3
+          OFFSET $4
+          `,
+          [myId, `%${username}%`, limit, offset]
+        );
+    
+        return res.status(200).json({
+          success: true,
+          count: result.rows.length,
+          limit,
+          offset,
+          users: result.rows
+        });
+    
+      } catch (error) {
+        console.error(error);
+    
+        return res.status(500).json({
+          success: false,
+          message: "Internal server error"
+        });
+      }
+    };
 module.exports = {
     getMyFrnds,
     postFriendRequest,
-    handleFriendRequest
+    handleFriendRequest,
+    getMyReceivedRequests,
+    getAllUsers,
+    searchUsers
 }
