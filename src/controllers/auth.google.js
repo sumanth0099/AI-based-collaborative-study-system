@@ -78,6 +78,7 @@ require("dotenv").config('./src');
       }
       req.session.userId = dbUser.id;
       req.session.email = dbUser.email;
+      req.session.username = dbUser.name;
 
       res.json({
         message: "Login successful",

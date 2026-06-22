@@ -88,6 +88,7 @@ async function userLogin(req, res) {
 
         req.session.userId = user.id;
         req.session.email = user.email;
+        req.session.username = user.name;
 
         res.status(200).json({ message: "Login successful", user: { id: user.id, email: user.email, name: user.name } });
     } catch (err) {

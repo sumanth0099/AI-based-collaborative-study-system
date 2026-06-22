@@ -1,58 +1,101 @@
 const createID = require("../utils/generateuuid.js");
 const pool = require("../config.js");
-const { io, userSocketMap } = require("../../server.js");
+const socketManager = require("../socketManager");
+const io = socketManager.getIO();
+const { userSocketMap } = socketManager;
 
-const postFriendRequest= async (req, res) => {
-    const {requesterId, recipientId} = req.body;
-    if(!requesterId || !recipientId) 
-        return res.status(400).json({ message: "Both requester and recipient IDs are required" });
-    if(requesterId === recipientId)
-        return res.status(400).json({ message: "Cannot send friend request to yourself" });
-    const socketId = userSocketMap.get(recipientId);
-    let requesterName = await pool.query(`SELECT name FROM users WHERE id = $1`, [requesterId]);
-    if(requesterName.rows.length === 0)
-        return res.status(404).json({ message: "Requester not found" });
-    if(socketId){
-            io.to(socketId).emit("friend_request", { from: requesterName.rows[0].name, requesterId });
-            let noti_result = await pool.query(
-                `INSERT INTO notifications (id, receiverId, type, message, is_sent, createdAt)
-                 VALUES ($1, $2, $3, $4, TRUE, $5);`,
-                [
-                  createID(),
-                  recipientId,
-                  "friend_request",
-                  `You have a new friend request from ${requesterName.rows[0].name}`,
-                  new Date()
-                ]
-              );
-            if(noti_result.rowCount === 0)
-                return res.status(500).json({ message: "Failed to create notification" });
-            let resultApplication = await pool.query(`INSERT INTO friend_requests (id, senderId, receiverId, status, createdAt) VALUES ($1, $2, $3, $4, NOW())`, [createID(), requesterId, recipientId, 'pending']);
-            if(resultApplication.rowCount>0)
-                res.status(201).json({ message: "Friend request sent" });
-        }
-    else{
-        let resultApplication = await pool.query(`INSERT INTO friend_requests (id, senderId, receiverId, status, createdAt) VALUES ($1, $2, $3, $4, NOW())`, [createID(), requesterId, recipientId, 'pending']);
-        if(resultApplication.rowCount>0)
-            res.status(201).json({ message: "Friend request sent" });
-         else
-            res.status(500).json({ message: "Failed to send friend request" });
-            let noti_result = await pool.query(
-                `INSERT INTO notifications (id, receiverId, type, message, is_sent, createdAt)
-                 VALUES ($1, $2, $3, $4, FALSE, $5)`,
-                [
-                  createID(),
-                  recipientId,
-                  "friend_request",
-                  `You have a new friend request from ${requesterName.rows[0].name}`,
-                  new Date()
-                ]
-              );
-                if(noti_result.rowCount === 0)
-                    console.error("Failed to create notification for offline user");
-        }
+const postFriendRequest = async (req, res) => {
+  try {
+    const { recipientId } = req.body;
+    const requesterId = req.session.userId;
 
+    if (!requesterId || !recipientId) {
+      return res.status(400).json({
+        message: "Both requester and recipient IDs are required"
+      });
     }
+
+    if (requesterId === recipientId) {
+      return res.status(400).json({
+        message: "Cannot send friend request to yourself"
+      });
+    }
+
+    // Check requester
+    const requesterResult = await pool.query(
+      `SELECT name FROM users WHERE id = $1`,
+      [requesterId]
+    );
+
+    if (requesterResult.rows.length === 0) {
+      return res.status(404).json({
+        message: "Requester not found"
+      });
+    }
+
+    const requesterName = requesterResult.rows[0].name;
+
+    // Check existing pending request
+    const existingRequest = await pool.query(
+      `SELECT id
+       FROM friend_requests
+       WHERE senderId = $1
+       AND receiverId = $2
+       AND status = 'pending'`,
+      [requesterId, recipientId]
+    );
+
+    if (existingRequest.rows.length > 0) {
+      return res.status(409).json({
+        message: "Friend request already sent"
+      });
+    }
+
+    // Create friend request
+    await pool.query(
+      `INSERT INTO friend_requests
+       (id, senderId, receiverId, status, createdAt)
+       VALUES ($1, $2, $3, 'pending', NOW())`,
+      [createID(), requesterId, recipientId]
+    );
+
+    // Check if recipient is online
+    const socketId = userSocketMap.get(String(recipientId));
+
+    // Create notification
+    await pool.query(
+      `INSERT INTO notifications
+       (id, receiverId, type, message, is_sent, createdAt)
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [
+        createID(),
+        recipientId,
+        "friend_request",
+        `You have a new friend request from ${requesterName}`,
+        Boolean(socketId)
+      ]
+    );
+
+    // Realtime notification
+    if (socketId) {
+      io.to(socketId).emit("friend_request", {
+        from: requesterName,
+        requesterId
+      });
+    }
+
+    return res.status(201).json({
+      message: "Friend request sent successfully"
+    });
+
+  } catch (err) {
+    console.error("postFriendRequest error:", err);
+
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+};
 
  
 
@@ -155,41 +198,63 @@ const handleFriendRequest = async (req, res) => {
       }
     };
     
-    module.exports = {
-      handleFriendRequest,
+  
+
+
+    const getMyFrnds = async (req, res) => {
+      try {
+        const myid = req.session?.userId;
+    
+        if (!myid) {
+          return res.status(401).json({
+            message: "Unauthorized"
+          });
+        }
+    
+        const query = `
+          SELECT
+            u.id,
+            u.name AS username,
+            u.email,
+            u.is_verified,
+            f.createdAt AS joined_on
+          FROM friends f
+          JOIN users u
+            ON u.id = f.userTwoId
+          WHERE f.userOneId = $1
+    
+          UNION
+    
+          SELECT
+            u.id,
+            u.name AS username,
+            u.email,
+            u.is_verified,
+            f.createdAt AS joined_on
+          FROM friends f
+          JOIN users u
+            ON u.id = f.userOneId
+          WHERE f.userTwoId = $1
+        `;
+    
+        const result = await pool.query(query, [myid]);
+    
+        return res.status(200).json({
+          success: true,
+          count: result.rows.length,
+          friends: result.rows
+        });
+    
+      } catch (err) {
+        console.error("getMyFrnds error:", err);
+    
+        return res.status(500).json({
+          success: false,
+          message: "Internal server error"
+        });
+      }
     };
 
-
-
-const getMyFrnds = async (req,res)=>{
-    let myid = req.params.userId;
-    const query = `SELECT 
-                    u.name AS username,
-                    u.email,
-                    u.is_verified,
-                    f.createdAt AS joined_on
-                    FROM friends f
-                    JOIN users u 
-                    ON u.id = f.userTwoId
-                    WHERE f.userOneId = $1
-
-                    UNION
-
-                    SELECT 
-                        u.name AS username,
-                        u.email,
-                        u.is_verified,
-                        f.createdAt AS joined_on
-                    FROM friends f
-                    JOIN users u 
-                    ON u.id = f.userOneId
-                    WHERE f.userTwoId = $1;`;
-        const result =await pool.query(query, [myid]);
-        if(result.rowCount>0)
-            res.status(200).json(result.rows);
-        else
-            res.status(404).json({ message: "No friends found" });
-}   
 module.exports = {
     getMyFrnds,
     postFriendRequest,

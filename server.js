@@ -3,7 +3,7 @@ const app = express();
 const session = require("express-session");
 const http = require("http");
 const { Server } = require("socket.io");
-
+const socketManager = require("./src/socketManager");
 app.use(express.json());
 
 // ---------------- SESSION ----------------
@@ -46,8 +46,9 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 const io = new Server(server);
 
-// 🔥 MAP: userId -> socketId
-const userSocketMap = new Map();
+socketManager.init(io);
+
+const { userSocketMap } = socketManager;
 
 // ---------------- SOCKET MIDDLEWARE (SESSION) ----------------
 io.use((socket, next) => {
@@ -88,9 +89,7 @@ io.on("connection", (socket) => {
 // ---------------- EXPORTS (IMPORTANT for controllers) ----------------
 module.exports = {
   app,
-  server,
-  io,
-  userSocketMap
+  server
 };
 
 // ---------------- START SERVER ----------------
