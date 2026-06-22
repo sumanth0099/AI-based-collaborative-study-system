@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     receiverId UUID NOT NULL,
     type VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
-    isRead BOOLEAN DEFAULT FALSE,
+    is_sent BOOLEAN DEFAULT FALSE,
     createdAt TIMESTAMP NOT NULL,
 
     FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE

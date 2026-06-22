@@ -68,7 +68,7 @@ io.use((socket, next) => {
 
 // ---------------- CONNECTION ----------------
 io.on("connection", (socket) => {
-
+  
   console.log("User connected:", socket.userId);
 
   // store user
