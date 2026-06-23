@@ -105,6 +105,19 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE
 );
 `;
+const createGroupMessages=`
+CREATE TABLE IF NOT EXISTS group_messages (
+    id UUID PRIMARY KEY,
+    groupId UUID NOT NULL,
+    senderId UUID NOT NULL,
+    messageType VARCHAR(50) DEFAULT 'text',
+    content TEXT NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (groupId) REFERENCES study_groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (senderId) REFERENCES users(id) ON DELETE CASCADE
+);
+`;
 async function initDB() {
   try {
     // Order matters because of foreign key constraints
@@ -128,6 +141,9 @@ async function initDB() {
 
     await pool.query(createStudyGroupMembersTable);
     console.log("Study group member table ready")
+
+    await pool.query(createGroupMessages);
+    console.log("Group Messages table ready")
 
   } catch (err) {
     console.error("Error creating tables:", err);

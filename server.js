@@ -30,7 +30,7 @@ app.use('/api/group-members', require("./src/routes/studyGroupMemberRoutes.js"))
 app.use('/api/groups', require("./src/routes/studygroups.routes"));
 app.use('/api', require("./src/routes/friends.routes.js"));
 app.use('/api', require("./src/routes/notifications.routes.js"));
-
+app.use("/api",require("./src/routes/groupMessages.routes"));
 
 // ---------------- ERROR HANDLER ----------------
 app.use((err, req, res, next) => {
@@ -189,7 +189,161 @@ io.on("connection", (socket) => {
       });
     }
   });
+  // ================= GROUP MESSAGE =================
+ 
+  socket.on("group_message", async (data) => {
+  
 
+    const parsedData =
+        typeof data === "string"
+            ? JSON.parse(data)
+            : data;
+
+    const { groupId, message } = parsedData;
+
+    console.log(groupId);
+    console.log(message);
+    try {
+
+      if (!groupId) {
+        return socket.emit("message_error", {
+          success: false,
+          message: "Group ID is required"
+        });
+      }
+
+      if (!message || !message.trim()) {
+        return socket.emit("message_error", {
+          success: false,
+          message: "Message cannot be empty"
+        });
+      }
+
+      // Verify sender belongs to group
+      const memberResult = await pool.query(
+        `
+        SELECT userId AS "userId"
+FROM study_group_members
+WHERE groupId = $1
+AND userId <> $2
+        `,
+        [groupId, socket.userId]
+      );
+
+      if (memberResult.rowCount === 0) {
+        return socket.emit("message_error", {
+          success: false,
+          message: "You are not a member of this group"
+        });
+      }
+
+      // Save message
+      const messageResult = await pool.query(
+        `
+        INSERT INTO group_messages
+        (
+          id,
+          groupId,
+          senderId,
+          messageType,
+          content,
+          createdAt
+        )
+        VALUES
+        ($1,$2,$3,$4,$5,$6)
+        RETURNING *
+        `,
+        [
+          createID(),
+          groupId,
+          socket.userId,
+          "text",
+          message.trim(),
+          new Date()
+        ]
+      );
+
+      const savedMessage = messageResult.rows[0];
+
+      // Get all members except sender
+      const membersResult = await pool.query(
+        `
+  SELECT userId AS "userId"
+  FROM study_group_members
+  WHERE groupId = $1
+    AND userId <> $2
+  `,
+        [groupId, socket.userId]
+      );
+
+      for (const member of membersResult.rows) {
+
+       const receiverId = member.userId;
+        const receiverSocketId = userSocketMap.get(receiverId);
+
+        // Online user
+        if (receiverSocketId) {
+
+          io.to(receiverSocketId).emit(
+            "receive_group_message",
+            savedMessage
+          );
+
+        }
+
+        // Offline user
+        else {
+
+          await pool.query(
+            `
+            INSERT INTO notifications
+            (
+              id,
+              receiverId,
+              type,
+              message,
+              groupId,
+              messageId,
+              is_sent,
+              createdAt
+            )
+            VALUES
+            ($1,$2,$3,$4,$5,$6,$7,$8)
+            `,
+            [
+              createID(),
+              receiverId,
+              "group_message",
+              message.trim(),
+              groupId,
+              savedMessage.id,
+              false,
+              new Date()
+            ]
+          );
+
+        }
+      }
+
+      // acknowledge sender
+      socket.emit(
+        "group_message_sent",
+        savedMessage
+      );
+
+    } catch (err) {
+
+      console.error("Group message error:", err);
+
+      socket.emit(
+        "message_error",
+        {
+          success: false,
+          message: "Failed to send group message"
+        }
+      );
+    }
+  });
   socket.on("disconnect", () => {
     userSocketMap.delete(socket.userId);
     console.log("User disconnected:", socket.userId);
