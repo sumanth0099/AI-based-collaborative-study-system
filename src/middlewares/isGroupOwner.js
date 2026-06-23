@@ -1,24 +1,28 @@
 const pool = require("../config");
 
-const isGroupAdmin = async (req, res, next) => {
+const isGroupOwner = async (req, res, next) => {
     try {
         const groupId = req.params.id || req.params.groupId;
         const userId = req.session.userId;
 
         const result = await pool.query(
-            "SELECT createdBy FROM study_groups WHERE id = $1",
-            [groupId]
+            `
+            SELECT role
+            FROM group_members
+            WHERE group_id = $1 AND user_id = $2
+            `,
+            [groupId, userId]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({
-                message: "Group not found"
+            return res.status(403).json({
+                message: "You are not a member of this group"
             });
         }
 
-        if (result.rows[0].createdby !== userId) {
+        if (result.rows[0].role !== "owner") {
             return res.status(403).json({
-                message: "Only admin can perform this action"
+                message: "Only owner can perform this action"
             });
         }
 
@@ -31,4 +35,4 @@ const isGroupAdmin = async (req, res, next) => {
     }
 };
 
-module.exports = isGroupAdmin;
+module.exports = isGroupOwner;

@@ -1,6 +1,76 @@
 const pool = require("../config");
 const { v4: uuidv4 } = require("uuid");
 
+// const createGroup = async (req, res) => {
+//     try {
+//         const { name, description, avatar, isPrivate } = req.body;
+//         const createdBy = req.session.userId;
+
+//         if (!name) {
+//             return res.status(400).json({
+//                 message: "Group name is required"
+//             });
+//         }
+
+//         const id = uuidv4();
+
+//         const query = `
+//             INSERT INTO study_groups (
+//                 id,
+//                 name,
+//                 description,
+//                 avatar,
+//                 createdBy,
+//                 isPrivate
+//             )
+//             VALUES ($1, $2, $3, $4, $5, $6)
+//             RETURNING *;
+//         `;
+
+//         const values = [
+//             id,
+//             name,
+//             description || null,
+//             avatar || null,
+//             createdBy,
+//             isPrivate || false
+//         ];
+
+//         // Create group
+//         const result = await pool.query(query, values);
+
+//         // Add creator as admin in study_group_members
+//         await pool.query(
+//             `
+//             INSERT INTO study_group_members (
+//                 id,
+//                 groupId,
+//                 userId,
+//                 role
+//             )
+//             VALUES ($1, $2, $3, $4)
+//             `,
+//             [
+//                 uuidv4(),
+//                 id,
+//                 createdBy,
+//                 "owner"
+//             ]
+//         );
+
+//         res.status(201).json({
+//             message: "Group created successfully",
+//             group: result.rows[0]
+//         });
+
+//     } catch (err) {
+//         console.error("Error creating group:", err);
+
+//         res.status(500).json({
+//             message: "Internal server error"
+//         });
+//     }
+// };
 const createGroup = async (req, res) => {
     try {
         const { name, description, avatar, isPrivate } = req.body;
@@ -12,9 +82,13 @@ const createGroup = async (req, res) => {
             });
         }
 
-        const id = uuidv4();
+        const groupId = uuidv4();
 
-        const query = `
+        await pool.query("BEGIN");
+
+        // Create group
+        const groupResult = await pool.query(
+            `
             INSERT INTO study_groups (
                 id,
                 name,
@@ -25,31 +99,55 @@ const createGroup = async (req, res) => {
             )
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *;
-        `;
+            `,
+            [
+                groupId,
+                name,
+                description || null,
+                avatar || null,
+                createdBy,
+                isPrivate || false
+            ]
+        );
 
-        const values = [
-            id,
-            name,
-            description || null,
-            avatar || null,
-            createdBy,
-            isPrivate || false
-        ];
+        // Add creator as owner
+        await pool.query(
+            `
+            INSERT INTO study_group_members (
+                id,
+                groupId,
+                userId,
+                role
+            )
+            VALUES ($1, $2, $3, $4)
+            `,
+            [
+                uuidv4(),
+                groupId,
+                createdBy,
+                "owner"
+            ]
+        );
 
-        const result = await pool.query(query, values);
+        await pool.query("COMMIT");
 
         res.status(201).json({
             message: "Group created successfully",
-            group: result.rows[0]
+            group: groupResult.rows[0]
         });
 
     } catch (err) {
+        await pool.query("ROLLBACK");
+
         console.error("Error creating group:", err);
 
         res.status(500).json({
             message: "Internal server error"
         });
     }
+};
+module.exports = {
+    createGroup
 };
 
 const getAllGroups = async (req, res) => {

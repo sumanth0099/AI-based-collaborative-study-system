@@ -26,9 +26,12 @@ app.use(sessionMiddleware);
 app.use('/auth', require("./src/routes/auth.routes.js"));
 app.use('/api/notes', require("./src/routes/note.routes.js"));
 app.use('/api/resources', require("./src/routes/resource.routes.js"));
+app.use('/api/group-members', require("./src/routes/studyGroupMemberRoutes.js"));
 app.use('/api/groups', require("./src/routes/studygroups.routes"));
 app.use('/api', require("./src/routes/friends.routes.js"));
 app.use('/api', require("./src/routes/notifications.routes.js"));
+
+
 // ---------------- ERROR HANDLER ----------------
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError &&

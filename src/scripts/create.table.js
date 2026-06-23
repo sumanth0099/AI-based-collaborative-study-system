@@ -47,6 +47,27 @@ CREATE TABLE IF NOT EXISTS notes (
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`;
+const createStudyGroupMembersTable = `
+CREATE TABLE IF NOT EXISTS study_group_members (
+    id UUID PRIMARY KEY,
+    groupId UUID NOT NULL,
+    userId UUID NOT NULL,
+    role VARCHAR(20) DEFAULT 'member',
+    joinedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (groupId)
+    REFERENCES study_groups(id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (userId)
+    REFERENCES users(id)
+    ON DELETE CASCADE,
+
+    UNIQUE(groupId, userId),
+
+    CHECK(role IN ('owner', 'admin', 'member'))
+);
+`;
 
 const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDS (
     id UUID PRIMARY KEY,
@@ -104,6 +125,9 @@ async function initDB() {
 
     await pool.query(createNotificationTable);
     console.log("Notifications table ready");
+
+    await pool.query(createStudyGroupMembersTable);
+    console.log("Study group member table ready")
 
   } catch (err) {
     console.error("Error creating tables:", err);
