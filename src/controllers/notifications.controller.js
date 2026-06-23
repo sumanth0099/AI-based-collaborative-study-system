@@ -80,6 +80,7 @@ const getNewNotification = async (req, res) => {
         count: notifications.length,
         notifications
       });
+      
   
     } catch (error) {
       console.error("getNewNotification:", error);
@@ -90,7 +91,37 @@ const getNewNotification = async (req, res) => {
       });
     }
   };
+  const markNotificationsSeen = async(req,res)=>{
+  try{
+
+    const userId = req.session.userId;
+
+    await pool.query(
+      `
+      UPDATE notifications
+      SET is_seen = true
+      WHERE receiverId = $1
+      AND is_seen = false
+      `,
+      [userId]
+    );
+
+    return res.status(200).json({
+      success:true,
+      message:"Notifications marked as seen"
+    });
+
+  }catch(err){
+    console.log(err);
+
+    return res.status(500).json({
+      success:false,
+      message:"Internal server error"
+    });
+  }
+};
 module.exports = {
     getMyNotificationHistory,
-    getNewNotification
+    getNewNotification,
+    
 }

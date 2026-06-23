@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS study_group_members (
 );
 `;
 
+
 const createFriendsTable = `CREATE TABLE IF NOT EXISTS FRIENDS (
     id UUID PRIMARY KEY,
     userOneId UUID NOT NULL,
@@ -102,7 +103,21 @@ CREATE TABLE IF NOT EXISTS notifications (
     is_sent BOOLEAN DEFAULT FALSE,
     createdAt TIMESTAMP NOT NULL,
 
-    FOREIGN KEY (receiverId) REFERENCES users(id) ON DELETE CASCADE
+    groupId UUID,
+    groupName VARCHAR(255),
+    messageId UUID,
+
+    FOREIGN KEY (receiverId)
+    REFERENCES users(id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (groupId)
+    REFERENCES study_groups(id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (messageId)
+    REFERENCES group_messages(id)
+    ON DELETE CASCADE
 );
 `;
 const createGroupMessages=`
@@ -116,6 +131,37 @@ CREATE TABLE IF NOT EXISTS group_messages (
 
     FOREIGN KEY (groupId) REFERENCES study_groups(id) ON DELETE CASCADE,
     FOREIGN KEY (senderId) REFERENCES users(id) ON DELETE CASCADE
+);
+`;
+const groupJoinRequests=`
+CREATE TABLE IF NOT EXISTS group_join_requests (
+    id UUID PRIMARY KEY,
+
+    groupId UUID NOT NULL,
+    userId UUID NOT NULL,
+
+    status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+
+    requestedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    reviewedBy UUID,
+    reviewedAt TIMESTAMP,
+
+    FOREIGN KEY (groupId)
+        REFERENCES study_groups(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (userId)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (reviewedBy)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT unique_group_user_request
+        UNIQUE (groupId, userId)
 );
 `;
 async function initDB() {
@@ -136,14 +182,19 @@ async function initDB() {
     await pool.query(createFRIEND_REQUESTS);
     console.log("Friend Requests table ready");
 
-    await pool.query(createNotificationTable);
-    console.log("Notifications table ready");
+  
 
     await pool.query(createStudyGroupMembersTable);
     console.log("Study group member table ready")
 
     await pool.query(createGroupMessages);
     console.log("Group Messages table ready")
+
+      await pool.query(createNotificationTable);
+    console.log("Notifications table ready");
+
+    await pool.query(groupJoinRequests);
+    console.log("Group Join Requests table ready")
 
   } catch (err) {
     console.error("Error creating tables:", err);

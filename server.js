@@ -31,6 +31,7 @@ app.use('/api/groups', require("./src/routes/studygroups.routes"));
 app.use('/api', require("./src/routes/friends.routes.js"));
 app.use('/api', require("./src/routes/notifications.routes.js"));
 app.use("/api",require("./src/routes/groupMessages.routes"));
+app.use("/groups",require("./src/routes/joinRequestRoutes.js"));
 
 // ---------------- ERROR HANDLER ----------------
 app.use((err, req, res, next) => {
@@ -218,7 +219,16 @@ io.on("connection", (socket) => {
           message: "Message cannot be empty"
         });
       }
+      const groupResult = await pool.query(
+        `
+        SELECT name
+        FROM study_groups
+        WHERE id = $1
+        `,
+        [groupId]
+        );
 
+const groupName = groupResult.rows[0].name;
       // Verify sender belongs to group
       const memberResult = await pool.query(
         `
@@ -294,33 +304,36 @@ AND userId <> $2
         // Offline user
         else {
 
+          
           await pool.query(
-            `
-            INSERT INTO notifications
-            (
-              id,
-              receiverId,
-              type,
-              message,
-              groupId,
-              messageId,
-              is_sent,
-              createdAt
-            )
-            VALUES
-            ($1,$2,$3,$4,$5,$6,$7,$8)
-            `,
-            [
-              createID(),
-              receiverId,
-              "group_message",
-              message.trim(),
-              groupId,
-              savedMessage.id,
-              false,
-              new Date()
-            ]
-          );
+`
+INSERT INTO notifications
+(
+id,
+receiverId,
+type,
+message,
+groupId,
+groupName,
+messageId,
+is_sent,
+createdAt
+)
+VALUES
+($1,$2,$3,$4,$5,$6,$7,$8,$9)
+`,
+[
+createID(),
+receiverId,
+"group_message",
+message.trim(),
+groupId,
+groupName,
+savedMessage.id,
+false,
+new Date()
+]
+);
 
         }
       }
