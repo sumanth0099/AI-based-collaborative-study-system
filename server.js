@@ -32,6 +32,7 @@ app.use('/api', require("./src/routes/friends.routes.js"));
 app.use('/api', require("./src/routes/notifications.routes.js"));
 app.use("/api",require("./src/routes/groupMessages.routes"));
 app.use("/groups",require("./src/routes/joinRequestRoutes.js"));
+app.use("/api", require("./src/routes/pages.routes.js"));
 
 // ---------------- ERROR HANDLER ----------------
 app.use((err, req, res, next) => {
