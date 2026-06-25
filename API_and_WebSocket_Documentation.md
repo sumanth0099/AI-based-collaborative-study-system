@@ -136,6 +136,18 @@ This document serves as the complete reference for all REST API endpoints and We
 - **Request Body:** `{ "resourceId": "uuid", "sharedWithUserId": "uuid" }`
 - **Response (200):** `{ "message": "Resource shared successfully (placeholder)", "data": {...} }`
 
+### 4.3 Get All Resources
+- **Endpoint:** `GET /api/resources`
+- **Response (200):** Array of resource objects.
+
+### 4.4 Get Single Resource
+- **Endpoint:** `GET /api/resources/:id`
+- **Response (200):** Single resource object.
+
+### 4.5 Delete Resource
+- **Endpoint:** `DELETE /api/resources/:id`
+- **Response (200):** `{ "message": "Resource deleted successfully" }`
+
 ---
 
 ## 5. AI Features (`/api/ai`)
