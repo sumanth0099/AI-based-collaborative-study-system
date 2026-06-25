@@ -197,6 +197,38 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
         ON DELETE SET NULL
 );
 `;
+const createIndexes = `
+    -- Optimized for study groups retrieval and sorting
+    CREATE INDEX IF NOT EXISTS idx_study_groups_createdat ON study_groups(createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_study_groups_createdby_createdat ON study_groups(createdBy, createdAt DESC);
+    
+    -- Optimized for notes retrieval (filtering by archived status and user, sorted by date)
+    CREATE INDEX IF NOT EXISTS idx_notes_isarchived_createdat ON notes(isArchived, createdAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_notes_userid_updatedat ON notes(userId, updatedAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_notes_groupid ON notes(groupId);
+    
+    -- Optimized for group members (filtering by user)
+    CREATE INDEX IF NOT EXISTS idx_study_group_members_userid ON study_group_members(userId);
+    
+    -- Optimized for friends (UNIQUE constraint already covers userOneId)
+    CREATE INDEX IF NOT EXISTS idx_friends_usertwoid ON FRIENDS(userTwoId);
+    
+    -- Optimized for pending friend requests for a user
+    CREATE INDEX IF NOT EXISTS idx_friend_requests_receiverid_status ON friend_requests(receiverId, status);
+    
+    -- Optimized for notifications retrieval
+    CREATE INDEX IF NOT EXISTS idx_notifications_receiverid_createdat ON notifications(receiverId, createdAt DESC);
+    
+    -- Optimized for loading group messages chronologically
+    CREATE INDEX IF NOT EXISTS idx_group_messages_groupid_createdat ON group_messages(groupId, createdAt);
+    
+    -- Optimized for group join requests
+    CREATE INDEX IF NOT EXISTS idx_group_join_requests_groupid ON group_join_requests(groupId);
+    
+    -- Optimized for quiz attempts history
+    CREATE INDEX IF NOT EXISTS idx_quiz_attempts_userid_attemptedat ON quiz_attempts(userId, attemptedAt DESC);
+`;
+
     async function initDB() {
     try {
         // Order matters because of foreign key constraints
@@ -231,6 +263,9 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
 
         await pool.query(createQuizAttemptsTable);
         console.log("Quiz Attempts table ready");
+        
+        await pool.query(createIndexes);
+        console.log("Database indexes ready");
         
     } catch (err) {
         console.error("Error creating tables:", err);

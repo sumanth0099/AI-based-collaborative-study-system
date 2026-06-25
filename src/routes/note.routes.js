@@ -3,7 +3,6 @@ const router = express.Router();
 const noteController = require('../controllers/note.controller.js');
 const isAuthenticated = require('../middlewares/auth.middleware.js');
 
-// Apply authentication middleware to all note routes
 router.use(isAuthenticated);
 
 // Order matters: specific routes before parameterized routes

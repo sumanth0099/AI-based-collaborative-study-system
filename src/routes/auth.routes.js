@@ -16,5 +16,5 @@ router.get('/me',isAuthenticated, (req, res) => {
 });
 router.post('/register', userRegister);
 router.post('/login', userLogin);
-router.post('/logout', userLogout);
+router.post('/logout',isAuthenticated, userLogout);
 module.exports = router;

@@ -291,15 +291,17 @@ const generateDashboardInsight = async (dashboardData) => {
             {
               role: "system",
               content: `
-You are a study analytics assistant.
+You are an educational analytics coach.
 
-Analyze the student's study habits.
+Analyze the student's study and quiz performance.
 
 Rules:
-- Maximum 3 sentences.
-- Give one strength.
-- Give one improvement suggestion.
-- Return only the summary.
+- Maximum 4 sentences.
+- Mention one strength.
+- Mention one weak area if applicable.
+- Suggest one actionable improvement.
+- Be encouraging.
+- Return only plain text.
 `
             },
             {
@@ -308,7 +310,7 @@ Rules:
             }
           ],
           temperature: 0.7,
-          max_tokens: 150
+          max_tokens: 200
         })
       }
     );
@@ -317,15 +319,17 @@ Rules:
 
     return (
       data?.choices?.[0]?.message?.content ||
-      "Your study activity is progressing steadily."
+      "Your study progress is moving in the right direction. Keep building consistency."
     );
 
   } catch (err) {
     console.error(err);
 
-    return "Your study activity is progressing steadily.";
+    return "Your study progress is moving in the right direction. Keep building consistency.";
   }
 };
+
+
 
 const getDashboardData = async (req, res) => {
   try {
@@ -344,14 +348,17 @@ const getDashboardData = async (req, res) => {
       totalFriendsResult,
 
       notesBySubjectResult,
-
       highPriorityNotesResult,
-
       monthlyActivityResult,
+      groupStatsResult,
 
-      groupStatsResult
+      quizOverviewResult,
+      recentQuizAttemptsResult,
+      topicPerformanceResult
+
     ] = await Promise.all([
 
+      // Total Notes
       pool.query(
         `
         SELECT COUNT(*)::int AS count
@@ -362,6 +369,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
+      // Total Groups
       pool.query(
         `
         SELECT COUNT(*)::int AS count
@@ -371,6 +379,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
+      // Total Friends
       pool.query(
         `
         SELECT COUNT(*)::int AS count
@@ -381,7 +390,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
-      // Notes by subject
+      // Subject Distribution
       pool.query(
         `
         SELECT
@@ -397,7 +406,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
-      // High importance notes
+      // High Priority Notes
       pool.query(
         `
         SELECT
@@ -416,7 +425,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
-      // Monthly note creation activity
+      // Monthly Activity
       pool.query(
         `
         SELECT
@@ -430,7 +439,7 @@ const getDashboardData = async (req, res) => {
         [userId]
       ),
 
-      // Group statistics
+      // Group Statistics
       pool.query(
         `
         SELECT
@@ -447,12 +456,58 @@ const getDashboardData = async (req, res) => {
         ORDER BY members DESC
         `,
         [userId]
+      ),
+
+      // Quiz Overview
+      pool.query(
+        `
+        SELECT
+          COUNT(*)::int AS total_attempts,
+          COALESCE(ROUND(AVG(percentage),2),0) AS average_score,
+          COALESCE(MAX(percentage),0) AS best_score
+        FROM quiz_attempts
+        WHERE userId = $1
+        `,
+        [userId]
+      ),
+
+      // Recent Quiz Attempts
+      pool.query(
+        `
+        SELECT
+          topic,
+          subject,
+          obtainedMarks,
+          maxMarks,
+          percentage,
+          attemptedAt
+        FROM quiz_attempts
+        WHERE userId = $1
+        ORDER BY attemptedAt DESC
+        LIMIT 10
+        `,
+        [userId]
+      ),
+
+      // Topic Performance
+      pool.query(
+        `
+        SELECT
+          topic,
+          COUNT(*)::int AS attempts,
+          ROUND(AVG(percentage),2) AS average_score,
+          MAX(percentage) AS best_score
+        FROM quiz_attempts
+        WHERE userId = $1
+        GROUP BY topic
+        ORDER BY average_score DESC
+        `,
+        [userId]
       )
     ]);
 
     const aiInput = {
-      totalNotes:
-        totalNotesResult.rows[0].count,
+      totalNotes: totalNotesResult.rows[0].count,
 
       notesBySubject:
         notesBySubjectResult.rows,
@@ -460,17 +515,39 @@ const getDashboardData = async (req, res) => {
       highPriorityNotes:
         highPriorityNotesResult.rows.length,
 
-      groups:
-        groupStatsResult.rows
+      quizzes: {
+        totalAttempts:
+          quizOverviewResult.rows[0].total_attempts,
+
+        averageScore:
+          quizOverviewResult.rows[0].average_score,
+
+        bestScore:
+          quizOverviewResult.rows[0].best_score,
+
+        topicPerformance:
+          topicPerformanceResult.rows
+      }
     };
 
     const aiSummary =
       await generateDashboardInsight(aiInput);
 
+    const strongTopics =
+      topicPerformanceResult.rows.filter(
+        topic => Number(topic.average_score) >= 75
+      );
+
+    const weakTopics =
+      topicPerformanceResult.rows.filter(
+        topic => Number(topic.average_score) < 50
+      );
+
     return res.status(200).json({
       success: true,
 
       data: {
+
         overview: {
           totalNotes:
             totalNotesResult.rows[0].count,
@@ -481,6 +558,31 @@ const getDashboardData = async (req, res) => {
           totalFriends:
             totalFriendsResult.rows[0].count
         },
+
+        quizOverview: {
+          totalAttempts:
+            quizOverviewResult.rows[0].total_attempts,
+
+          averageScore:
+            Number(
+              quizOverviewResult.rows[0].average_score
+            ),
+
+          bestScore:
+            Number(
+              quizOverviewResult.rows[0].best_score
+            )
+        },
+
+        recentQuizAttempts:
+          recentQuizAttemptsResult.rows,
+
+        topicPerformance:
+          topicPerformanceResult.rows,
+
+        strongTopics,
+
+        weakTopics,
 
         notesBySubject:
           notesBySubjectResult.rows,

@@ -7,7 +7,7 @@ const groupMessageController=require("../controllers/groupMessagesController");
 router.use(isAuthenticated);
 
 router.get(
-    "/groups/:groupId/messages",
+    "/groups/:groupId/messages",isAuthenticated,
     groupMessageController.getGroupMessages
 );
 
