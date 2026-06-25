@@ -1,1 +1,1 @@
-# AI-based-collaborative-study-system
+# AI-based-collaborative-study-syste
