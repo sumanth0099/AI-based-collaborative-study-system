@@ -260,15 +260,15 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 6.1 Get Friends List
 - **Endpoint:** `GET /api/get-friends`
-- **Response (200):** `{ "success": true, "count": 1, "friends": [...] }`
+- **Response (200):** ```{ "success": true, "count": 1, "friends": [...] }```
 
 ### 6.2 Get All Users
 - **Endpoint:** `GET /api/get-users`
-- **Response (200):** `{ "success": true, "count": 10, "users": [...] }`
+- **Response (200):** ```{ "success": true, "count": 10, "users": [...] }```
 
 ### 6.3 Search Users
 - **Endpoint:** `GET /api/search-users?username=query&offset=0`
-- **Response (200):** `{ "success": true, "count": 10, "limit": 10, "offset": 0, "users": [...] }`
+- **Response (200):** ```{ "success": true, "count": 10, "limit": 10, "offset": 0, "users": [...] }```
 
 ### 6.4 Send Friend Request
 - **Endpoint:** `POST /api/friend-requests/send`
@@ -277,8 +277,8 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 6.5 Handle Friend Request
 - **Endpoint:** `POST /api/friends-request/action`
-- **Request Body:** `{ "requestId": "uuid", "action": "accept" }` // or "reject"
-- **Response (200):** `{ "message": "Friend request accepted" }`
+- **Request Body:** ```{ "requestId": "uuid", "action": "accept" }``` // or "reject"
+- **Response (200):** ```{ "message": "Friend request accepted" }```
 
 ### 6.6 Get Pending Friend Requests Received
 - **Endpoint:** `GET /api/get-reqests` (Note the spelling in the endpoint route)
@@ -299,31 +299,31 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 7.1 Join Group (Public)
 - **Endpoint:** `POST /api/group-members/:groupId/join`
-- **Response (201):** `{ "message": "Joined group successfully" }`
+- **Response (201):** ```{ "message": "Joined group successfully" }```
 
 ### 7.2 Leave Group
 - **Endpoint:** `DELETE /api/group-members/:groupId/leave`
-- **Response (200):** `{ "message": "Left group successfully" }`
+- **Response (200):** ```{ "message": "Left group successfully" }```
 
 ### 7.3 Get Group Members
 - **Endpoint:** `GET /api/group-members/:groupId/members`
-- **Response (200):** `{ "totalMembers": 5, "members": [...] }`
+- **Response (200):** ```{ "totalMembers": 5, "members": [...] }```
 
 ### 7.4 Promote Member to Admin
 - **Endpoint:** `PUT /api/group-members/:groupId/promote/:userId` (Owner only)
-- **Response (200):** `{ "message": "Member promoted to admin successfully" }`
+- **Response (200):** ```{ "message": "Member promoted to admin successfully" }```
 
 ### 7.5 Demote Admin
 - **Endpoint:** `PUT /api/group-members/:groupId/demote/:userId` (Owner only)
-- **Response (200):** `{ "message": "Admin demoted successfully" }`
+- **Response (200):** ```{ "message": "Admin demoted successfully" }```
 
 ### 7.6 Remove Member
 - **Endpoint:** `DELETE /api/group-members/:groupId/remove/:userId` (Admin/Owner)
-- **Response (200):** `{ "message": "User removed successfully" }`
+- **Response (200):** ```{ "message": "User removed successfully" }```
 
 ### 7.7 Get My Groups
 - **Endpoint:** `GET /api/group-members/my-groups`
-- **Response (200):** `{ "totalGroups": 3, "groups": [...] }`
+- **Response (200):** ```{ "totalGroups": 3, "groups": [...] }```
 
 ---
 
