@@ -1,0 +1,44 @@
+/* src/pages/Layout.css */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  padding-top: var(--navbar-height);
+}
+
+.main-content {
+  flex: 1;
+  min-height: calc(100vh - var(--navbar-height));
+  transition: margin-left var(--transition-normal);
+  overflow-x: hidden;
+}
+
+.main-sidebar-open {
+  margin-left: var(--sidebar-width);
+}
+
+.main-sidebar-closed {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+.page-wrapper {
+  padding: var(--space-xl);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .main-sidebar-open,
+  .main-sidebar-closed {
+    margin-left: 0;
+  }
+  .page-wrapper {
+    padding: var(--space-md);
+  }
+}

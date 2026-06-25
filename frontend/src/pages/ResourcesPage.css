@@ -1,0 +1,42 @@
+/* src/pages/ResourcesPage.css */
+.resources-page { display: flex; flex-direction: column; gap: var(--space-xl); }
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+.upload-zone-active { border-color: var(--accent-primary); background: rgba(124,58,237,0.06); }
+.upload-zone-uploading { opacity: 0.7; cursor: wait; }
+.upload-icon { font-size: 2.5rem; }
+.upload-browse { color: var(--text-accent); cursor: pointer; font-weight: 600; }
+.upload-browse:hover { color: var(--accent-secondary); }
+.upload-hint { font-size: 0.75rem; color: var(--text-muted); }
+
+.res-grid { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.res-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.res-card-icon { font-size: 2rem; flex-shrink: 0; }
+
+.res-card-info { flex: 1; min-width: 0; }
+.res-card-name { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.res-card-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+.res-card-actions { display: flex; gap: var(--space-sm); flex-shrink: 0; }
+
+.res-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: var(--space-3xl); text-align: center; }
+.res-empty h3 { color: var(--text-primary); margin: 0; }

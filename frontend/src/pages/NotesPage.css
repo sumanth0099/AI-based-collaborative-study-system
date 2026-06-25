@@ -1,0 +1,97 @@
+/* src/pages/NotesPage.css */
+.notes-page { display: flex; flex-direction: column; gap: var(--space-xl); }
+
+.notes-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+.notes-header .page-header { margin-bottom: 0; }
+
+.notes-search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-md);
+  transition: border-color var(--transition-fast);
+}
+.notes-search-bar:focus-within { border-color: var(--accent-primary); }
+.notes-search-bar svg { color: var(--text-muted); flex-shrink: 0; }
+.notes-search-input { border: none !important; background: transparent !important; box-shadow: none !important; padding-left: 0 !important; }
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.note-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.note-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.note-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+}
+
+.note-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.note-meta {
+  display: flex;
+  gap: var(--space-xs);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.note-preview {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-delete-btn { opacity: 0; transition: opacity var(--transition-fast); }
+.note-card:hover .note-delete-btn { opacity: 1; }
+
+.notes-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-3xl);
+  text-align: center;
+}
+.notes-empty-icon { font-size: 4rem; }
+.notes-empty h3 { color: var(--text-primary); margin: 0; }
+
+.note-form { display: flex; flex-direction: column; gap: var(--space-md); }

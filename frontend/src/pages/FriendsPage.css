@@ -1,0 +1,28 @@
+/* src/pages/FriendsPage.css */
+.friends-page { display: flex; flex-direction: column; gap: var(--space-xl); }
+.friends-tabs { display: flex; gap: var(--space-xs); border-bottom: 1px solid var(--border); overflow-x: auto; }
+
+.friends-list { padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-sm); }
+
+.friend-item {
+  display: flex; align-items: center; gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+.friend-item:hover { background: rgba(255,255,255,0.06); }
+
+.friend-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--accent-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: white; flex-shrink: 0;
+}
+
+.friend-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.friend-info strong { color: var(--text-primary); font-size: 0.9rem; }
+.friend-email { font-size: 0.75rem; color: var(--text-muted); truncate: overflow hidden; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+
+.friends-empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-md); padding: var(--space-2xl); text-align: center; }
+.friends-empty h3 { color: var(--text-primary); margin: 0; }
