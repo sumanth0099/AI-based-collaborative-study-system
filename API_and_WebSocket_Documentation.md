@@ -60,16 +60,27 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 2.2 Get All Groups
 - **Endpoint:** `GET /api/groups/`
-- **Response (200):** Array of group objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "name": "Math Group", "description": "...", "avatar": "...", "isPrivate": false }
+  ]
+  ```
 
 ### 2.3 Get Group By ID
 - **Endpoint:** `GET /api/groups/:id`
-- **Response (200):** Single group object.
+- **Response (200):**
+  ```json
+  { "id": "uuid", "name": "Math Group", "description": "...", "avatar": "...", "isPrivate": false }
+  ```
 
 ### 2.4 Update Group
 - **Endpoint:** `PUT /api/groups/:id`
 - **Request Body:** (Fields to update e.g., `name`, `description`, `avatar`, `isPrivate`)
-- **Response (200):** Updated group object.
+- **Response (200):**
+  ```json
+  { "id": "uuid", "name": "Updated Group", "description": "...", "avatar": "...", "isPrivate": false }
+  ```
 
 ### 2.5 Delete Group
 - **Endpoint:** `DELETE /api/groups/:id`
@@ -77,7 +88,12 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 2.6 Search Groups
 - **Endpoint:** `GET /api/groups/search?q=query`
-- **Response (200):** Array of matching group objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "name": "Math Group", "description": "..." }
+  ]
+  ```
 
 ---
 
@@ -97,16 +113,27 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 3.2 Get All Notes
 - **Endpoint:** `GET /api/notes/`
-- **Response (200):** Array of non-archived note objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "name": "Algebra Notes", "subject": "Math", "topic": "Algebra", "content": "..." }
+  ]
+  ```
 
 ### 3.3 Get Note By ID
 - **Endpoint:** `GET /api/notes/:id`
-- **Response (200):** Single note object.
+- **Response (200):**
+  ```json
+  { "id": "uuid", "name": "Algebra Notes", "content": "..." }
+  ```
 
 ### 3.4 Update Note
 - **Endpoint:** `PUT /api/notes/:id`
 - **Request Body:** (Fields to update e.g., `name`, `content`, `tags`, `isArchived`)
-- **Response (200):** Updated note object.
+- **Response (200):**
+  ```json
+  { "id": "uuid", "name": "Updated Notes", "content": "..." }
+  ```
 
 ### 3.5 Delete Note
 - **Endpoint:** `DELETE /api/notes/:id` (Soft delete, sets `isArchived` to true)
@@ -114,7 +141,12 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 3.6 Search Notes
 - **Endpoint:** `GET /api/notes/search?q=query`
-- **Response (200):** Array of matching note objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "name": "Algebra Notes", "topic": "Algebra" }
+  ]
+  ```
 
 ---
 
@@ -138,11 +170,19 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 4.3 Get All Resources
 - **Endpoint:** `GET /api/resources`
-- **Response (200):** Array of resource objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "originalFileName": "...", "fileSize": 1024, "cloudinaryUrl": "..." }
+  ]
+  ```
 
 ### 4.4 Get Single Resource
 - **Endpoint:** `GET /api/resources/:id`
-- **Response (200):** Single resource object.
+- **Response (200):**
+  ```json
+  { "id": "uuid", "originalFileName": "...", "fileSize": 1024, "cloudinaryUrl": "..." }
+  ```
 
 ### 4.5 Delete Resource
 - **Endpoint:** `DELETE /api/resources/:id`
@@ -178,7 +218,15 @@ This document serves as the complete reference for all REST API endpoints and We
     "totalQuestions": 10, "answers": [ { "selectedAnswer": "A", "correctAnswer": "A" } ]
   }
   ```
-- **Response (200):** Score data and a motivational message.
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "quizScore": 8,
+    "totalQuestions": 10,
+    "message": "Great job! You passed."
+  }
+  ```
 
 ### 5.4 Generate Flashcards
 - **Endpoint:** `POST /api/ai/flashcards/generate`
@@ -199,7 +247,12 @@ This document serves as the complete reference for all REST API endpoints and We
 ### 5.6 Generate Summary
 - **Endpoint:** `POST /api/ai/summary/generate`
 - **Request Body:** `{ "id": "noteId", "topic": "topic_name" }`
-- **Response (200):** Generated summary.
+- **Response (200):**
+  ```json
+  {
+    "summary": "This is a generated summary of your notes..."
+  }
+  ```
 
 ---
 
@@ -229,7 +282,16 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 6.6 Get Pending Friend Requests Received
 - **Endpoint:** `GET /api/get-reqests` (Note the spelling in the endpoint route)
-- **Response (200):** `{ "success": true, "count": 1, "requests": [...] }`
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "count": 1,
+    "requests": [
+      { "id": "uuid", "sender_id": "uuid", "sender_name": "...", "status": "pending", "createdAt": "..." }
+    ]
+  }
+  ```
 
 ---
 
@@ -274,7 +336,12 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 8.2 Get Pending Requests
 - **Endpoint:** `GET /groups/:groupId/requests`
-- **Response (200):** Array of pending request objects.
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "userId": "uuid", "username": "...", "status": "pending" }
+  ]
+  ```
 
 ### 8.3 Approve Request
 - **Endpoint:** `PUT /groups/:groupId/requests/:userId/approve`
@@ -290,11 +357,25 @@ This document serves as the complete reference for all REST API endpoints and We
 
 ### 9.1 Get Notification History
 - **Endpoint:** `GET /api/get-notifications/history`
-- **Response (200):** `{ "notifications": [...] }`
+- **Response (200):**
+  ```json
+  [
+    { "id": "uuid", "type": "friend_request", "message": "...", "is_sent": true, "createdAt": "..." }
+  ]
+  ```
 
 ### 9.2 Get Unseen Notifications
 - **Endpoint:** `GET /api/get-notifications/unseen`
-- **Response (200):** `{ "success": true, "count": 2, "notifications": [...] }`
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "count": 2,
+    "notifications": [
+      { "id": "uuid", "type": "group_message", "message": "...", "is_sent": false }
+    ]
+  }
+  ```
 
 ---
 
@@ -336,10 +417,8 @@ const socket = io("http://localhost:3000", {
   socket.emit("private_message", { receiverId: "uuid", message: "Hello!" });
   ```
 - **Backend Emits to Receiver:**
-  ```javascript
-  socket.on("receive_private_message", (data) => {
-    // data: { senderId, receiverId, message, sentAt }
-  });
+  ```json
+  { "senderId": "uuid", "receiverId": "uuid", "message": "Hello!", "sentAt": "..." }
   ```
 - **Backend Emits to Sender (Acknowledge):**
   ```javascript
@@ -352,10 +431,8 @@ const socket = io("http://localhost:3000", {
   socket.emit("group_message", { groupId: "uuid", message: "Hey everyone!" });
   ```
 - **Backend Emits to Group Members (except sender):**
-  ```javascript
-  socket.on("receive_group_message", (data) => {
-    // data: { id, groupId, senderId, messageType, content, createdAt }
-  });
+  ```json
+  { "id": "uuid", "groupId": "uuid", "senderId": "uuid", "messageType": "text", "content": "Hey everyone!", "createdAt": "..." }
   ```
 - **Backend Emits to Sender (Acknowledge):**
   ```javascript
