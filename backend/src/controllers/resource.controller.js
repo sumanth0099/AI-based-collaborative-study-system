@@ -1,54 +1,6 @@
-// const { uploadToCloudinary } = require('../utils/cloudinary.js');
-
-// const uploadResource = async (req, res) => {
-//     try {
-//         if (!req.file) {
-//             return res.status(400).json({ error: "No file provided" });
-//         }
-
-//         // Upload to Cloudinary
-//         const result = await uploadToCloudinary(req.file.buffer);
-        
-//         res.status(200).json({ 
-//             message: "Resource uploaded successfully",
-//             data: {
-//                 cloudinaryUrl: result.secure_url,
-//                 cloudinaryPublicId: result.public_id,
-//                 originalFileName: req.file.originalname,
-//                 fileSize: req.file.size,
-//                 mimeType: req.file.mimetype
-//             }
-//         });
-//     } catch (err) {
-//         console.error("Error uploading resource:", err);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
-
-// const shareResource = async (req, res) => {
-//     try {
-//         const { resourceId, sharedWithUserId } = req.body;
-        
-//         console.log(`Sharing resource ${resourceId} with user ${sharedWithUserId}`);
-        
-//         res.status(200).json({ 
-//             message: "Resource shared successfully (placeholder)",
-//             data: { resourceId, sharedWithUserId }
-//         });
-//     } catch (err) {
-//         console.error("Error sharing resource:", err);
-//         res.status(500).json({ error: "Internal server error" });
-//     }
-// };
-
-
-
-// module.exports = {
-//     uploadResource,
-//     shareResource,
-    
-// };
 const cloudinary = require("cloudinary").v2;
+const pool = require("../config.js");
+const createID = require("../utils/generateuuid.js");
 require("dotenv").config();
 
 /**
@@ -61,13 +13,6 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-/**
- * ---------------------------
- * TEMP STORAGE (replace with DB later)
- * ---------------------------
- */
-let resources = [];
 
 /**
  * ---------------------------
@@ -106,10 +51,34 @@ const uploadResource = async (req, res) => {
             return res.status(400).json({ error: "No file provided" });
         }
 
+        const userId = req.session ? req.session.userId : null;
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
         const result = await uploadToCloudinary(req.file.buffer);
+        const resourceId = createID();
+
+        await pool.query(`
+            INSERT INTO notes
+            (id, "userId", "createdBy", "contentType", "originalFileName", "cloudinaryPublicId", "cloudinaryUrl", "fileSize", "mimeType", "createdAt", "updatedAt")
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
+            resourceId,
+            userId,
+            userId,
+            'file',
+            req.file.originalname,
+            result.public_id,
+            result.secure_url,
+            req.file.size,
+            req.file.mimetype,
+            new Date(),
+            new Date()
+        ]);
 
         const newResource = {
-            id: Date.now().toString(),
+            id: resourceId,
             cloudinaryUrl: result.secure_url,
             cloudinaryPublicId: result.public_id,
             originalFileName: req.file.originalname,
@@ -117,8 +86,6 @@ const uploadResource = async (req, res) => {
             mimeType: req.file.mimetype,
             createdAt: new Date()
         };
-
-        resources.push(newResource);
 
         return res.status(200).json({
             message: "Resource uploaded successfully",
@@ -138,9 +105,24 @@ const uploadResource = async (req, res) => {
  */
 const listResources = async (req, res) => {
     try {
+        const userId = req.session ? req.session.userId : null;
+        if (!userId) {
+             return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        // Fetch all files uploaded by the user or shared with them (just checking their notes for now)
+        const result = await pool.query(`
+            SELECT id, "originalFileName", "fileSize", "mimeType", "cloudinaryUrl", "cloudinaryPublicId", "createdAt"
+            FROM notes
+            WHERE ("userId" = $1 OR "createdBy" = $1)
+              AND "contentType" = 'file'
+              AND ("isArchived" IS NULL OR "isArchived" = FALSE)
+            ORDER BY "createdAt" DESC
+        `, [userId]);
+
         return res.status(200).json({
             message: "Resources fetched successfully",
-            data: resources
+            data: result.rows
         });
     } catch (err) {
         console.error("List error:", err);
@@ -156,16 +138,24 @@ const listResources = async (req, res) => {
 const getResource = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.session ? req.session.userId : null;
+        if (!userId) {
+             return res.status(401).json({ error: "Unauthorized" });
+        }
 
-        const resource = resources.find(r => r.id === id);
+        const result = await pool.query(`
+            SELECT id, "originalFileName", "fileSize", "mimeType", "cloudinaryUrl", "cloudinaryPublicId", "createdAt"
+            FROM notes
+            WHERE id = $1 AND "contentType" = 'file' AND ("isArchived" IS NULL OR "isArchived" = FALSE)
+        `, [id]);
 
-        if (!resource) {
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: "Resource not found" });
         }
 
         return res.status(200).json({
             message: "Resource fetched successfully",
-            data: resource
+            data: result.rows[0]
         });
 
     } catch (err) {
@@ -182,23 +172,32 @@ const getResource = async (req, res) => {
 const deleteResource = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const index = resources.findIndex(r => r.id === id);
-
-        if (index === -1) {
-            return res.status(404).json({ error: "Resource not found" });
+        const userId = req.session ? req.session.userId : null;
+        if (!userId) {
+             return res.status(401).json({ error: "Unauthorized" });
         }
 
-        const resource = resources[index];
+        const result = await pool.query(`
+            SELECT id, "cloudinaryPublicId"
+            FROM notes
+            WHERE id = $1 AND "createdBy" = $2 AND "contentType" = 'file'
+        `, [id, userId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Resource not found or unauthorized to delete" });
+        }
+
+        const resource = result.rows[0];
 
         // delete from cloudinary
-        await deleteFromCloudinary(resource.cloudinaryPublicId);
+        if (resource.cloudinaryPublicId) {
+            await deleteFromCloudinary(resource.cloudinaryPublicId);
+        }
 
-        resources.splice(index, 1);
+        await pool.query(`DELETE FROM notes WHERE id = $1`, [id]);
 
         return res.status(200).json({
-            message: "Resource deleted successfully",
-            data: resource
+            message: "Resource deleted successfully"
         });
 
     } catch (err) {
@@ -215,16 +214,8 @@ const deleteResource = async (req, res) => {
 const shareResource = async (req, res) => {
     try {
         const { resourceId, sharedWithUserId } = req.body;
-
-        const resource = resources.find(r => r.id === resourceId);
-
-        if (!resource) {
-            return res.status(404).json({ error: "Resource not found" });
-        }
-
-        resource.sharedWith = resource.sharedWith || [];
-        resource.sharedWith.push(sharedWithUserId);
-
+        
+        // This is a placeholder since there is no standard shared functionality implemented in schema yet.
         return res.status(200).json({
             message: "Resource shared successfully",
             data: {

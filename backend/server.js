@@ -7,6 +7,11 @@ const socketManager = require("./src/socketManager");
 const pool = require("./src/config.js");
 const createID = require("./src/utils/generateuuid.js");
 app.use(express.json());
+const cors = require("cors");
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 
 // ---------------- SESSION ----------------
 const sessionMiddleware = session({
@@ -51,7 +56,12 @@ app.use((err, req, res, next) => {
 
 // ---------------- SERVER + SOCKET ----------------
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true
+  }
+});
 
 socketManager.init(io);
 
