@@ -690,7 +690,20 @@ const generateImportantQuestions = async (req, res) => {
         });
     }
 };
+const getTopics = (req,res)=>{
+    return res.status(200).json({
+        success:true,
+        topics:[
+            "Quiz Generation",
+            "Flashcards Generation",
+            "Chat with Assistant",
+            "Summary Generation",
+            "Important Questions Generation"
+        ]
+    })
+}
 module.exports = {
+    getTopics,
     getQuizTopics,getQuiz,
     submitQuiz,generateFlashcards,
     chatWithAssistant,generateSummary,

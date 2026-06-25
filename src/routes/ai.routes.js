@@ -8,9 +8,11 @@ const {
     generateFlashcards,
     chatWithAssistant,
     generateSummary,
-    generateImportantQuestions
+    generateImportantQuestions,
+    getTopics
 } = require("../controllers/ai.controller");
 
+router.get("/ai/available-options",isAuthenticated, getTopics);
 router.get("/ai/quiz/available-options",isAuthenticated, getQuizTopics);
 router.post("/ai/quiz/generate",isAuthenticated, getQuiz);
 router.post("/ai/quiz/submit",isAuthenticated, submitQuiz);
