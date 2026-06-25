@@ -39,10 +39,11 @@ export default function GroupDetailPage() {
     }
   }, [currentGroup]);
 
-  const myMembership = members.find(m => m.userId === user?.userId || m.userId === user?.id || m.id === user?.userId || m.id === user?.id);
-  const isMember = !!myMembership;
-  const isOwnerOrAdmin = myMembership?.role === 'owner' || myMembership?.role === 'admin';
-  const isOwner = myMembership?.role === 'owner';
+  const userStatus = currentGroup?.userStatus || { isMember: false, role: null, hasPendingRequest: false };
+  const isMember = userStatus.isMember;
+  const isOwnerOrAdmin = userStatus.role === 'owner' || userStatus.role === 'admin';
+  const isOwner = userStatus.role === 'owner';
+  const hasPendingRequest = userStatus.hasPendingRequest;
 
   const loadRequests = () => { fetchJoinRequests(id); setActiveTab('requests'); };
 
@@ -51,7 +52,16 @@ export default function GroupDetailPage() {
     try { await fn(); } catch(e) {} finally { setActionLoading(''); }
   };
 
-  const handleJoin = () => doAction(() => currentGroup?.isPrivate ? sendJoinRequest(id) : joinGroup(id), 'join');
+  const handleJoin = () => doAction(async () => {
+    if (currentGroup?.isPrivate) {
+      await sendJoinRequest(id);
+      fetchGroupById(id); // Refresh status
+    } else {
+      await joinGroup(id);
+      fetchGroupById(id); // Refresh status
+      fetchMembers(id);
+    }
+  }, 'join');
   const handleLeave = () => doAction(async () => { await leaveGroup(id); navigate('/groups'); }, 'leave');
   const handleDelete = async () => {
     if (!confirm('Delete this group?')) return;
@@ -95,8 +105,21 @@ export default function GroupDetailPage() {
         </div>
         <div className="group-detail-hero-actions">
           {!isMember && (
-            <button className="btn btn-primary" onClick={handleJoin} disabled={actionLoading==='join'} id="join-group-btn">
-              {actionLoading==='join' ? <div className="spinner spinner-sm"/> : currentGroup.isPrivate ? '📩 Request to Join' : '➕ Join Group'}
+            <button
+              className="btn btn-primary"
+              onClick={handleJoin}
+              disabled={actionLoading === 'join' || hasPendingRequest}
+              id="join-group-btn"
+            >
+              {actionLoading === 'join' ? (
+                <div className="spinner spinner-sm" />
+              ) : hasPendingRequest ? (
+                '⏳ Request Pending'
+              ) : currentGroup.isPrivate ? (
+                '📩 Request to Join'
+              ) : (
+                '➕ Join Group'
+              )}
             </button>
           )}
           {isMember && (

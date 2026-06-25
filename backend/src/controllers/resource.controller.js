@@ -1,7 +1,7 @@
 const cloudinary = require("cloudinary").v2;
 const pool = require("../config.js");
 const createID = require("../utils/generateuuid.js");
-require("dotenv").config();
+// require("dotenv").config(); // Removed redundant call - already handled in server.js/config.js
 
 /**
  * ---------------------------
@@ -61,7 +61,7 @@ const uploadResource = async (req, res) => {
 
         await pool.query(`
             INSERT INTO notes
-            (id, "userId", "createdBy", "contentType", "originalFileName", "cloudinaryPublicId", "cloudinaryUrl", "fileSize", "mimeType", "createdAt", "updatedAt")
+            (id, userid, createdby, contenttype, originalfilename, cloudinarypublicid, cloudinaryurl, filesize, mimetype, createdat, updatedat)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [
             resourceId,
@@ -112,12 +112,12 @@ const listResources = async (req, res) => {
 
         // Fetch all files uploaded by the user or shared with them (just checking their notes for now)
         const result = await pool.query(`
-            SELECT id, "originalFileName", "fileSize", "mimeType", "cloudinaryUrl", "cloudinaryPublicId", "createdAt"
+            SELECT id, originalfilename AS "originalFileName", filesize AS "fileSize", mimetype AS "mimeType", cloudinaryurl AS "cloudinaryUrl", cloudinarypublicid AS "cloudinaryPublicId", createdat AS "createdAt"
             FROM notes
-            WHERE ("userId" = $1 OR "createdBy" = $1)
-              AND "contentType" = 'file'
-              AND ("isArchived" IS NULL OR "isArchived" = FALSE)
-            ORDER BY "createdAt" DESC
+            WHERE (userid = $1 OR createdby = $1)
+              AND contenttype = 'file'
+              AND (isarchived IS NULL OR isarchived = FALSE)
+            ORDER BY createdat DESC
         `, [userId]);
 
         return res.status(200).json({
@@ -144,10 +144,10 @@ const getResource = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT id, "originalFileName", "fileSize", "mimeType", "cloudinaryUrl", "cloudinaryPublicId", "createdAt"
+            SELECT id, originalfilename AS "originalFileName", filesize AS "fileSize", mimetype AS "mimeType", cloudinaryurl AS "cloudinaryUrl", cloudinarypublicid AS "cloudinaryPublicId", createdat AS "createdAt"
             FROM notes
-            WHERE id = $1 AND "contentType" = 'file' AND ("isArchived" IS NULL OR "isArchived" = FALSE)
-        `, [id]);
+            WHERE id = $1 AND (userid = $2 OR createdby = $2) AND contenttype = 'file' AND (isarchived IS NULL OR isarchived = FALSE)
+        `, [id, userId]);
 
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Resource not found" });
@@ -178,9 +178,9 @@ const deleteResource = async (req, res) => {
         }
 
         const result = await pool.query(`
-            SELECT id, "cloudinaryPublicId"
+            SELECT id, cloudinarypublicid AS "cloudinaryPublicId"
             FROM notes
-            WHERE id = $1 AND "createdBy" = $2 AND "contentType" = 'file'
+            WHERE id = $1 AND createdby = $2 AND contenttype = 'file'
         `, [id, userId]);
 
         if (result.rowCount === 0) {

@@ -545,64 +545,26 @@ const getDashboardData = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-
       data: {
-
-        overview: {
-          totalNotes:
-            totalNotesResult.rows[0].count,
-
-          totalGroups:
-            totalGroupsResult.rows[0].count,
-
-          totalFriends:
-            totalFriendsResult.rows[0].count
-        },
-
+        totalNotes: totalNotesResult.rows[0].count,
+        totalGroups: totalGroupsResult.rows[0].count,
+        totalFriends: totalFriendsResult.rows[0].count,
         quizOverview: {
-          totalAttempts:
-            quizOverviewResult.rows[0].total_attempts,
-
-          averageScore:
-            Number(
-              quizOverviewResult.rows[0].average_score
-            ),
-
-          bestScore:
-            Number(
-              quizOverviewResult.rows[0].best_score
-            )
+          totalAttempts: quizOverviewResult.rows[0].total_attempts,
+          averageScore: Number(quizOverviewResult.rows[0].average_score),
+          bestScore: Number(quizOverviewResult.rows[0].best_score)
         },
-
-        recentQuizAttempts:
-          recentQuizAttemptsResult.rows,
-
-        topicPerformance:
-          topicPerformanceResult.rows,
-
+        recentQuizAttempts: recentQuizAttemptsResult.rows,
+        topicPerformance: topicPerformanceResult.rows,
         strongTopics,
-
         weakTopics,
-
-        notesBySubject:
-          notesBySubjectResult.rows,
-
-        topSubjects:
-          notesBySubjectResult.rows.slice(0, 5),
-
-        highPriorityNotes:
-          highPriorityNotesResult.rows,
-
-        monthlyActivity:
-          monthlyActivityResult.rows,
-
-        groupStatistics:
-          groupStatsResult.rows,
-
+        notesBySubject: notesBySubjectResult.rows,
+        topSubjects: notesBySubjectResult.rows.slice(0, 5),
+        highPriorityNotes: highPriorityNotesResult.rows,
+        monthlyActivity: monthlyActivityResult.rows,
+        groupStatistics: groupStatsResult.rows,
         aiSummary,
-
-        generatedAt:
-          new Date().toISOString()
+        generatedAt: new Date().toISOString()
       }
     });
 

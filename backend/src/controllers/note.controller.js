@@ -11,7 +11,7 @@ const createNote = async (req, res) => {
         if (content) {
             const wordCount = content.trim().split(/\s+/).length;
             if (wordCount > 700) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     error: "Content exceeds the 700-word limit",
                     wordCount: wordCount
                 });
@@ -46,7 +46,11 @@ const createNote = async (req, res) => {
 
 const getAllNotes = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM notes WHERE isArchived = FALSE ORDER BY createdAt DESC');
+        const userId = req.session.userId;
+        const result = await pool.query(
+            'SELECT * FROM notes WHERE userid = $1 AND isArchived = FALSE ORDER BY createdAt DESC',
+            [userId]
+        );
         res.status(200).json(result.rows);
     } catch (err) {
         console.error("Error getting all notes:", err);
@@ -57,12 +61,16 @@ const getAllNotes = async (req, res) => {
 const getNoteById = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM notes WHERE id = $1 AND isArchived = FALSE', [id]);
-        
+        const userId = req.session.userId;
+        const result = await pool.query(
+            'SELECT * FROM notes WHERE id = $1 AND userid = $2 AND isArchived = FALSE',
+            [id, userId]
+        );
+
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Note not found" });
+            return res.status(404).json({ error: "Note not found or access denied" });
         }
-        
+
         res.status(200).json(result.rows[0]);
     } catch (err) {
         console.error("Error getting note by ID:", err);
@@ -73,6 +81,7 @@ const getNoteById = async (req, res) => {
 const updateNote = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.session.userId;
         const { name, subject, topic, content, contentType, topicImportance, tags, isArchived } = req.body;
         const now = new Date();
 
@@ -87,15 +96,15 @@ const updateNote = async (req, res) => {
                 tags = COALESCE($7, tags), 
                 isArchived = COALESCE($8, isArchived),
                 updatedAt = $9
-            WHERE id = $10
+            WHERE id = $10 AND userid = $11
             RETURNING *;
         `;
 
-        const values = [name, subject, topic, content, contentType, topicImportance, tags, isArchived, now, id];
+        const values = [name, subject, topic, content, contentType, topicImportance, tags, isArchived, now, id, userId];
         const result = await pool.query(query, values);
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Note not found" });
+            return res.status(404).json({ error: "Note not found or access denied" });
         }
 
         res.status(200).json(result.rows[0]);
@@ -108,11 +117,15 @@ const updateNote = async (req, res) => {
 const deleteNote = async (req, res) => {
     try {
         const { id } = req.params;
+        const userId = req.session.userId;
         // Soft delete
-        const result = await pool.query('UPDATE notes SET isArchived = TRUE, updatedAt = $1 WHERE id = $2 RETURNING *', [new Date(), id]);
+        const result = await pool.query(
+            'UPDATE notes SET isArchived = TRUE, updatedAt = $1 WHERE id = $2 AND userid = $3 RETURNING *',
+            [new Date(), id, userId]
+        );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Note not found" });
+            return res.status(404).json({ error: "Note not found or access denied" });
         }
 
         res.status(200).json({ message: "Note deleted successfully" });
@@ -125,6 +138,7 @@ const deleteNote = async (req, res) => {
 const searchNotes = async (req, res) => {
     try {
         const { q } = req.query;
+        const userId = req.session.userId;
         if (!q) {
             return res.status(400).json({ error: "Search query is required" });
         }
@@ -132,15 +146,11 @@ const searchNotes = async (req, res) => {
         const query = `
             SELECT * FROM notes 
             WHERE (topic ILIKE $1 OR subject ILIKE $1 OR content ILIKE $1) 
+            AND userid = $2
             AND isArchived = FALSE
             ORDER BY createdAt DESC;
         `;
-        const result = await pool.query(query, [`%${q}%`]);
-            if (result.rows.length === 0) {
-        return res.status(404).json({
-            message: "No notes found"
-        });
-}
+        const result = await pool.query(query, [`%${q}%`, userId]);
         res.status(200).json(result.rows);
     } catch (err) {
         console.error("Error searching notes:", err);

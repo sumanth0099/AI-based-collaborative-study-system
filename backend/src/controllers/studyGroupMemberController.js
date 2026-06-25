@@ -18,7 +18,7 @@ const joinGroup = async (req, res) => {
                 error: "Group not found"
             });
         }
-        if (groupResult.rows[0].visibility !== "public") {
+        if (groupResult.rows[0].isprivate) {
     return res.status(403).json({
         error: "Cannot directly join a private group"
     });
@@ -28,8 +28,8 @@ const joinGroup = async (req, res) => {
             `
             SELECT *
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -44,7 +44,7 @@ const joinGroup = async (req, res) => {
         await pool.query(
             `
             INSERT INTO study_group_members
-            (id, groupId, userId, role)
+            (id, groupid, userid, role)
             VALUES ($1, $2, $3, $4)
             `,
             [
@@ -78,8 +78,8 @@ const leaveGroup = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -111,8 +111,8 @@ const leaveGroup = async (req, res) => {
         await pool.query(
             `
             DELETE FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -158,18 +158,18 @@ const getGroupMembers = async (req, res) => {
                 u.email,
                 u.avatar,
                 sgm.role,
-                sgm.joinedAt
+                sgm.joinedat AS "joinedAt"
             FROM study_group_members sgm
             JOIN users u
-            ON sgm.userId = u.id
-            WHERE sgm.groupId = $1
+            ON sgm.userid = u.id
+            WHERE sgm.groupid = $1
             ORDER BY
                 CASE
                     WHEN sgm.role = 'owner' THEN 1
                     WHEN sgm.role = 'admin' THEN 2
                     ELSE 3
                 END,
-                sgm.joinedAt
+                sgm.joinedat
             `,
             [groupId]
         );
@@ -198,8 +198,8 @@ const promoteMember = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, currentUserId]
         );
@@ -217,8 +217,8 @@ const promoteMember = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -239,8 +239,8 @@ const promoteMember = async (req, res) => {
             `
             UPDATE study_group_members
             SET role = 'admin'
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -268,8 +268,8 @@ const demoteAdmin = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, currentUserId]
         );
@@ -287,8 +287,8 @@ const demoteAdmin = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -306,8 +306,8 @@ const demoteAdmin = async (req, res) => {
             `
             UPDATE study_group_members
             SET role = 'member'
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -353,8 +353,8 @@ const removeMember = async (req, res) => {
             `
             SELECT role
             FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -394,8 +394,8 @@ const removeMember = async (req, res) => {
         await pool.query(
             `
             DELETE FROM study_group_members
-            WHERE groupId = $1
-            AND userId = $2
+            WHERE groupid = $1
+            AND userid = $2
             `,
             [groupId, userId]
         );
@@ -425,16 +425,16 @@ const getMyGroups = async (req, res) => {
                 sg.name,
                 sg.description,
                 sg.avatar,
-                sg.createdBy,
-                sg.isPrivate,
-                sg.createdAt,
-                sg.updatedAt,
+                sg.createdby AS "createdBy",
+                sg.isprivate AS "isPrivate",
+                sg.createdat AS "createdAt",
+                sg.updatedat AS "updatedAt",
                 sgm.role
             FROM study_group_members sgm
             JOIN study_groups sg
-            ON sgm.groupId = sg.id
-            WHERE sgm.userId = $1
-            ORDER BY sg.createdAt DESC
+            ON sgm.groupid = sg.id
+            WHERE sgm.userid = $1
+            ORDER BY sg.createdat DESC
             `,
             [userId]
         );

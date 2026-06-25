@@ -94,7 +94,7 @@ export default function ResourcesPage() {
               </div>
               <div className="res-card-actions">
                 {r.cloudinaryUrl && (
-                  <a href={r.cloudinaryUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" id={`view-res-${r.id}`}>View</a>
+                  <a href={r.cloudinaryUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" id={`view-res-${r.id}`}>View</a>
                 )}
                 <button className="btn btn-ghost btn-sm" onClick={() => setShareModal(r.id)} id={`share-res-${r.id}`}>Share</button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id)} id={`del-res-${r.id}`}>Delete</button>
