@@ -52,8 +52,12 @@ This document lists all the available API endpoints in the AI-based Collaborativ
 
 ## Resources (`/api/resources`)
 
-- `POST /api/resources/upload` - Upload a new resource file.
-- `POST /api/resources/share` - Share a resource.
+- `POST /api/resources/upload`   - Upload a new resource file.
+- `POST /api/resources/share`    - Share a resource.
+- `GET /api/resources`           - Get all resources.
+- `GET /api/resources/:id`       - Get a single resource.
+- `DELETE /api/resources/:id`    - Delete a resource.
+
 
 ## Friends & Users (`/api`)
 
