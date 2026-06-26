@@ -211,6 +211,27 @@ export default function GroupDetailPage() {
           </div>
         )}
       </div>
+      {/* Edit Modal */}
+      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Edit Group">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="form-group">
+            <label className="form-label">Name</label>
+            <input className="form-input" value={editForm.name || ''} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea className="form-textarea" value={editForm.description || ''} onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))} />
+          </div>
+          <label className="groups-toggle">
+            <input type="checkbox" checked={!!editForm.isPrivate} onChange={e => setEditForm(p => ({ ...p, isPrivate: e.target.checked }))} />
+            <span>🔒 Private group</span>
+          </label>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+            <button className="btn btn-ghost" onClick={() => setEditModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSaveEdit} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -38,27 +38,40 @@ const useChatStore = create((set, get) => ({
   /** Called by socket listener when a group message is received */
   receiveGroupMessage: (message) => {
     const groupId = message.groupId || message.groupid;
-    set((s) => ({
-      groupMessages: {
-        ...s.groupMessages,
-        [groupId]: [...(s.groupMessages[groupId] || []), message],
-      },
-    }));
+    set((s) => {
+      const msgs = s.groupMessages[groupId] || [];
+      if (msgs.some((m) => m.id === message.id)) return s;
+      return {
+        groupMessages: {
+          ...s.groupMessages,
+          [groupId]: [...msgs, message],
+        },
+      };
+    });
   },
 
   /** Called when sender gets confirmation (group_message_sent) */
   confirmGroupMessage: (message) => {
     const groupId = message.groupId || message.groupid;
-    set((s) => ({
-      groupMessages: {
-        ...s.groupMessages,
-        [groupId]: [...(s.groupMessages[groupId] || []), message],
-      },
-    }));
+    set((s) => {
+      const msgs = s.groupMessages[groupId] || [];
+      if (msgs.some((m) => m.id === message.id)) return s;
+      return {
+        groupMessages: {
+          ...s.groupMessages,
+          [groupId]: [...msgs, message],
+        },
+      };
+    });
   },
 
   /** Private message received */
   receivePrivateMessage: (message) => {
+    set((s) => ({ privateMessages: [...s.privateMessages, message] }));
+  },
+
+  /** Private message sent confirmation */
+  confirmPrivateMessage: (message) => {
     set((s) => ({ privateMessages: [...s.privateMessages, message] }));
   },
 

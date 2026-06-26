@@ -8,8 +8,8 @@ const isGroupOwner = async (req, res, next) => {
         const result = await pool.query(
             `
             SELECT role
-            FROM group_members
-            WHERE group_id = $1 AND user_id = $2
+            FROM study_group_members
+            WHERE groupid = $1 AND userid = $2
             `,
             [groupId, userId]
         );

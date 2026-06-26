@@ -21,7 +21,7 @@ const useNotificationsStore = create((set) => ({
     set({ isLoading: true });
     try {
       const data = await api.getNotificationHistory();
-      set({ history: Array.isArray(data) ? data : [], isLoading: false });
+      set({ history: data?.notifications || [], isLoading: false });
     } catch (err) {
       set({ isLoading: false });
     }
@@ -35,7 +35,14 @@ const useNotificationsStore = create((set) => ({
     }));
   },
 
-  clearUnseen: () => set({ unseen: [], unseenCount: 0 }),
+  clearUnseen: async () => {
+    try {
+      await api.markNotificationsRead();
+      set({ unseen: [], unseenCount: 0 });
+    } catch {
+      // silent fail
+    }
+  },
 }));
 
 export default useNotificationsStore;

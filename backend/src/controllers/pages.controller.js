@@ -7,7 +7,7 @@ const generateAIInsight = async (userData) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY1}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY2}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -282,7 +282,7 @@ const generateDashboardInsight = async (dashboardData) => {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          Authorization: `Bearer ${process.env.GROQ_API_KEY2}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({

@@ -12,7 +12,7 @@ const {
 router.post('/friends-request/action',isAuthenticated,handleFriendRequest)
 router.get('/get-friends',isAuthenticated,getMyFrnds);
 router.post('/friend-requests/send',isAuthenticated, postFriendRequest);
-router.get('get-reqests',isAuthenticated, getMyReceivedRequests);
+router.get('/get-reqests',isAuthenticated, getMyReceivedRequests);
 router.get('/get-users',isAuthenticated,getAllUsers);
 router.get('/search-users',isAuthenticated, searchUsers);
 module.exports = router;

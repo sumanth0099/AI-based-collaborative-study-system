@@ -8,6 +8,7 @@ const TABS = [
   { key: 'flashcards', label: '🃏 Flashcards',  desc: 'Quick study cards for any topic' },
   { key: 'chat',       label: '💬 AI Chat',     desc: 'Ask the AI anything' },
   { key: 'summary',   label: '📄 Summary',     desc: 'Generate a summary of your notes' },
+  { key: 'important', label: '❓ Key Questions',desc: 'Generate important questions from notes' },
 ];
 
 export default function AIPage() {
@@ -16,6 +17,7 @@ export default function AIPage() {
     generateFlashcards, flashcards, isGeneratingFlashcards,
     sendChatMessage, chatHistory, isChatLoading, clearChat,
     generateSummary, summary, isGeneratingSummary, clearSummary,
+    generateImportantQuestions, importantQuestions, isGeneratingImportantQuestions, clearImportantQuestions,
   } = useAIStore();
 
   const [activeTab, setActiveTab] = useState('quiz');
@@ -24,6 +26,8 @@ export default function AIPage() {
   const [chatInput, setChatInput] = useState('');
   const [summaryTopic, setSummaryTopic] = useState(null);
   const [flashTopic, setFlashTopic] = useState(null);
+  const [chatTopic, setChatTopic] = useState(null);
+  const [importantTopic, setImportantTopic] = useState(null);
 
   useEffect(() => { fetchQuizTopics(); }, []);
 
@@ -54,9 +58,8 @@ export default function AIPage() {
   // Chat handler
   const handleChat = (e) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
-    const topic = quizTopics[0];
-    sendChatMessage(topic?.id || '', topic?.topic || '', chatInput);
+    if (!chatInput.trim() || !chatTopic) return;
+    sendChatMessage(chatTopic.id, chatTopic.topic, chatInput);
     setChatInput('');
   };
 
@@ -137,11 +140,11 @@ export default function AIPage() {
 
           {quizResult && (
             <div className="glass-card ai-panel-card quiz-result">
-              <div className="quiz-result-score" style={{color: quizResult.quizScore/quizResult.totalQuestions >= 0.7 ? 'var(--success)' : 'var(--error)'}}>
-                {quizResult.quizScore}/{quizResult.totalQuestions}
+              <div className="quiz-result-score" style={{color: quizResult.result?.percentage >= 70 ? 'var(--success)' : 'var(--error)'}}>
+                {quizResult.result?.correctAnswers}/{quizResult.result?.totalQuestions}
               </div>
-              <h3>{quizResult.message || 'Quiz complete!'}</h3>
-              <p>{Math.round((quizResult.quizScore/quizResult.totalQuestions)*100)}% score</p>
+              <h3>{quizResult.message?.title || quizResult.message || 'Quiz complete!'}</h3>
+              <p>{quizResult.result?.percentage}% score</p>
               <button className="btn btn-primary" onClick={() => { resetQuiz(); setQuizAnswers({}); }} id="retake-quiz-btn">Take Another Quiz</button>
             </div>
           )}
@@ -187,6 +190,21 @@ export default function AIPage() {
               <h3>AI Study Assistant</h3>
               <button className="btn btn-ghost btn-sm" onClick={clearChat} id="clear-chat-btn">Clear</button>
             </div>
+            {!chatTopic ? (
+              <div style={{marginBottom: 16}}>
+                <p>Select a topic to chat about:</p>
+                <div className="ai-topic-grid">
+                  {quizTopics.map(t => (
+                    <button key={t.id} className="ai-topic-btn" onClick={() => setChatTopic(t)}>{t.topic}</button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <span className="badge badge-primary">Topic: {chatTopic.topic}</span>
+                <button className="btn btn-ghost btn-sm" onClick={() => setChatTopic(null)}>Change Topic</button>
+              </div>
+            )}
             <div className="ai-chat-history">
               {chatHistory.length === 0 && (
                 <div className="ai-chat-welcome">
@@ -209,8 +227,8 @@ export default function AIPage() {
               )}
             </div>
             <form className="ai-chat-form" onSubmit={handleChat}>
-              <input id="ai-chat-input" className="form-input" placeholder="Ask anything..." value={chatInput} onChange={e=>setChatInput(e.target.value)} disabled={isChatLoading} />
-              <button type="submit" className="btn btn-primary btn-icon" disabled={!chatInput.trim()||isChatLoading} id="ai-chat-send">
+              <input id="ai-chat-input" className="form-input" placeholder={chatTopic ? "Ask anything..." : "Select a topic first..."} value={chatInput} onChange={e=>setChatInput(e.target.value)} disabled={isChatLoading || !chatTopic} />
+              <button type="submit" className="btn btn-primary btn-icon" disabled={!chatInput.trim()||isChatLoading||!chatTopic} id="ai-chat-send">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </form>
@@ -238,6 +256,35 @@ export default function AIPage() {
               <div className="ai-summary-result">
                 <h4>Summary</h4>
                 <p>{typeof summary === 'string' ? summary : JSON.stringify(summary)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* Important Questions */}
+      {activeTab === 'important' && (
+        <div className="ai-panel">
+          <div className="glass-card ai-panel-card">
+            <h3>Generate Key Questions</h3>
+            <p>Select a topic to generate 5 important questions to test your understanding.</p>
+            <div className="ai-topic-grid">
+              {quizTopics.map(t => (
+                <button key={t.id} className={`ai-topic-btn ${importantTopic?.id===t.id?'ai-topic-selected':''}`} onClick={() => setImportantTopic(t)} id={`imp-topic-${t.id}`}>{t.topic}</button>
+              ))}
+            </div>
+            {importantTopic && (
+              <button className="btn btn-primary" onClick={() => generateImportantQuestions(importantTopic.id, importantTopic.topic)} disabled={isGeneratingImportantQuestions} id="gen-imp-questions-ai-btn">
+                {isGeneratingImportantQuestions ? <><div className="spinner spinner-sm"/>Generating...</> : '❓ Generate Important Questions'}
+              </button>
+            )}
+            {importantQuestions && Array.isArray(importantQuestions) && (
+              <div className="ai-important-questions-result">
+                <h4>Key Questions</h4>
+                <ul className="important-questions-list" style={{ marginTop: '1rem', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                  {importantQuestions.map((q, idx) => (
+                    <li key={idx} style={{ lineHeight: '1.5' }}>{q}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>

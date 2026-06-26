@@ -13,6 +13,9 @@
 // module.exports = router;
 const express = require("express");
 const router = express.Router();
+const isAuthenticated = require('../middlewares/auth.middleware.js');
+
+router.use(isAuthenticated);
 
 const {
     uploadResource,

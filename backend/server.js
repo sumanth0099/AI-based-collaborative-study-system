@@ -1,17 +1,20 @@
+require('dotenv').config({ path: __dirname + '/.env' });
+
 const express = require("express");
 const app = express();
 const session = require("express-session");
 const http = require("http");
-const { Server } = require("socket.io");
-const socketManager = require("./src/socketManager");
-const pool = require("./src/config.js");
-const createID = require("./src/utils/generateuuid.js");
-app.use(express.json());
 const cors = require("cors");
 app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:5174"],
   credentials: true
 }));
+const { Server } = require("socket.io");
+const socketManager = require("./src/socketManager");
+const pool = require("./src/config.js");
+const createID = require("./src/utils/generateuuid.js");
+
+
 
 // ---------------- SESSION ----------------
 const sessionMiddleware = session({
@@ -185,7 +188,13 @@ io.on("connection", (socket) => {
         "receive_private_message",
         payload
       );
-  
+      // Emit a notification event for the receiver
+      socketManager.getIO().to(receiverSocketId).emit("new_notifications", {
+        type: "private_message",
+        from: socket.username,
+        senderId: socket.userId,
+        message: payload.message
+      });
       // Acknowledge sender
       socket.emit(
         "private_message_sent",
@@ -243,10 +252,10 @@ const groupName = groupResult.rows[0].name;
       // Verify sender belongs to group
       const memberResult = await pool.query(
         `
-        SELECT userId AS "userId"
+        SELECT userid AS "userId"
 FROM study_group_members
-WHERE groupId = $1
-AND userId <> $2
+WHERE groupid = $1
+AND userid = $2
         `,
         [groupId, socket.userId]
       );
@@ -299,53 +308,35 @@ AND userId <> $2
 
       for (const member of membersResult.rows) {
 
-       const receiverId = member.userId;
+        const receiverId = member.userId;
         const receiverSocketId = userSocketMap.get(receiverId);
+
+        // Always save notification to DB so history/unseen counts work
+        await pool.query(
+          `
+          INSERT INTO notifications
+          (id, receiverId, type, message, groupId, groupName, messageId, is_sent, createdAt)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+          `,
+          [
+            createID(),
+            receiverId,
+            "group_message",
+            message.trim(),
+            groupId,
+            groupName,
+            savedMessage.id,
+            false,
+            new Date()
+          ]
+        );
 
         // Online user
         if (receiverSocketId) {
-
           io.to(receiverSocketId).emit(
             "receive_group_message",
             savedMessage
           );
-
-        }
-
-        // Offline user
-        else {
-
-          
-          await pool.query(
-`
-INSERT INTO notifications
-(
-id,
-receiverId,
-type,
-message,
-groupId,
-groupName,
-messageId,
-is_sent,
-createdAt
-)
-VALUES
-($1,$2,$3,$4,$5,$6,$7,$8,$9)
-`,
-[
-createID(),
-receiverId,
-"group_message",
-message.trim(),
-groupId,
-groupName,
-savedMessage.id,
-false,
-new Date()
-]
-);
-
         }
       }
 

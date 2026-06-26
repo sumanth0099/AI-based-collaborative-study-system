@@ -98,7 +98,7 @@ const createGroup = async (req, res) => {
                 isPrivate
             )
             VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *;
+            RETURNING id, name, description, avatar, createdby AS "createdBy", isprivate AS "isPrivate", createdat AS "createdAt", updatedat AS "updatedAt";
             `,
             [
                 groupId,
@@ -240,7 +240,7 @@ const updateGroup = async (req, res) => {
                 isPrivate = COALESCE($4, isPrivate),
                 updatedAt = $5
             WHERE id = $6 AND createdby = $7
-            RETURNING *;
+            RETURNING id, name, description, avatar, createdby AS "createdBy", isprivate AS "isPrivate", createdat AS "createdAt", updatedat AS "updatedAt";
         `;
 
         const values = [

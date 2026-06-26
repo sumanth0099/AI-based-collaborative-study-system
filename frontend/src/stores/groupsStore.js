@@ -4,6 +4,17 @@ import * as groupApi from '../api/groups.api.js';
 import * as memberApi from '../api/groupMembers.api.js';
 import * as joinApi from '../api/joinRequests.api.js';
 
+const normalizeGroup = (g) => {
+  if (!g) return g;
+  return {
+    ...g,
+    createdBy: g.createdBy ?? g.createdby,
+    isPrivate: g.isPrivate ?? g.isprivate,
+    createdAt: g.createdAt ?? g.createdat,
+    updatedAt: g.updatedAt ?? g.updatedat,
+  };
+};
+
 const useGroupsStore = create((set, get) => ({
   groups: [],
   myGroups: [],
@@ -54,17 +65,17 @@ const useGroupsStore = create((set, get) => ({
 
   createGroup: async (data) => {
     const created = await groupApi.createGroup(data);
-    const group = created.group || created;
+    const group = normalizeGroup(created.group || created);
     set((s) => ({ groups: [group, ...s.groups] }));
     return group;
   },
 
   updateGroup: async (id, data) => {
-    const updated = await groupApi.updateGroup(id, data);
+    const updated = normalizeGroup(await groupApi.updateGroup(id, data));
     set((s) => ({
       groups: s.groups.map((g) => (g.id === id ? updated : g)),
-      currentGroup: updated,
     }));
+    await get().fetchGroupById(id);
     return updated;
   },
 

@@ -55,7 +55,10 @@ const useNotesStore = create((set, get) => ({
 
   deleteNote: async (id) => {
     await api.deleteNote(id);
-    set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
+    set((s) => ({
+      notes: s.notes.filter((n) => n.id !== id),
+      searchResults: s.searchResults.filter((n) => n.id !== id),
+    }));
   },
 
   clearCurrentNote: () => set({ currentNote: null }),

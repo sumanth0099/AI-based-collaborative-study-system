@@ -57,7 +57,7 @@ const useFriendsStore = create((set) => ({
 
   handleFriendRequest: async (requestId, action) => {
     await api.handleFriendRequest(requestId, action);
-    set((s) => ({ requests: s.requests.filter((r) => r.id !== requestId) }));
+    set((s) => ({ requests: s.requests.filter((r) => r.request_id !== requestId) }));
   },
 
   clearSearch: () => set({ searchResults: [] }),

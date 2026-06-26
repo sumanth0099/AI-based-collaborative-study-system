@@ -119,7 +119,7 @@ Requirements:
 7. Return ONLY valid JSON.
 8. Do NOT wrap JSON in markdown.
 9. Do NOT include backticks.
-
+10.if invalid topic is given send respective message.
 Response Format:
 
 {
@@ -169,7 +169,7 @@ ${note.content}
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${process.env.GROQ_API_KEY2}`
+                            Authorization: `Bearer ${process.env.GROQ_API_KEY1}`
                         },
                         body: JSON.stringify({
                             model: "llama-3.3-70b-versatile",
@@ -430,7 +430,7 @@ ${note.content}
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    Authorization: `Bearer ${process.env.GROQ_API_KEY1}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -449,6 +449,14 @@ ${note.content}
         );
 
         const data = await response.json();
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+            console.error("AI API Error (Flashcards):", data);
+            return res.status(502).json({
+                success: false,
+                message: "AI service is currently busy or unavailable. Please try again later."
+            });
+        }
 
         return res.status(200).json(
             JSON.parse(data.choices[0].message.content)
@@ -527,7 +535,7 @@ ${question}
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    Authorization: `Bearer ${process.env.GROQ_API_KEY1}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -546,6 +554,14 @@ ${question}
         );
 
         const data = await response.json();
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+            console.error("AI API Error (Chat):", data);
+            return res.status(502).json({
+                success: false,
+                message: "AI service is currently busy or unavailable. Please try again later."
+            });
+        }
 
         return res.status(200).json(
             JSON.parse(data.choices[0].message.content)
@@ -585,14 +601,38 @@ const generateSummary = async (req, res) => {
 
         const note = result.rows[0];
 
-        const prompt = `...`;
+        const prompt = `
+You are an expert study assistant.
+
+Create a concise summary of the following study material.
+
+Rules:
+1. Provide a brief overview of the main topic.
+2. List 3-5 key bullet points.
+3. Keep it easy to read.
+4. Return ONLY valid JSON.
+5. Do NOT wrap JSON in markdown.
+6. Do NOT include backticks.
+
+Response Format:
+{
+  "success": true,
+  "summary": "The main summary text here."
+}
+
+Study Material:
+Subject: ${note.subject}
+Topic: ${note.topic}
+Content:
+${note.content}
+`;
 
         const response = await fetch(
             "https://api.groq.com/openai/v1/chat/completions",
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    Authorization: `Bearer ${process.env.GROQ_API_KEY2}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -611,6 +651,14 @@ const generateSummary = async (req, res) => {
         );
 
         const data = await response.json();
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+            console.error("AI API Error (Summary):", data);
+            return res.status(502).json({
+                success: false,
+                message: "AI service is currently busy or unavailable. Please try again later."
+            });
+        }
 
         return res.json(
             JSON.parse(data.choices[0].message.content)
@@ -649,14 +697,43 @@ const generateImportantQuestions = async (req, res) => {
 
         const note = result.rows[0];
 
-        const prompt = `...`;
+        const prompt = `
+You are an expert study assistant.
+
+Generate 5 important questions based on the following study material to help the student test their understanding.
+
+Rules:
+1. Create exactly 5 important questions.
+2. The questions should cover the most important concepts.
+3. Return ONLY valid JSON.
+4. Do NOT wrap JSON in markdown.
+5. Do NOT include backticks.
+
+Response Format:
+{
+  "success": true,
+  "questions": [
+    "Question 1",
+    "Question 2",
+    "Question 3",
+    "Question 4",
+    "Question 5"
+  ]
+}
+
+Study Material:
+Subject: ${note.subject}
+Topic: ${note.topic}
+Content:
+${note.content}
+`;
 
         const response = await fetch(
             "https://api.groq.com/openai/v1/chat/completions",
             {
                 method: "POST",
                 headers: {
-                    Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+                    Authorization: `Bearer ${process.env.GROQ_API_KEY2}`,
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
@@ -675,6 +752,14 @@ const generateImportantQuestions = async (req, res) => {
         );
 
         const data = await response.json();
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
+            console.error("AI API Error (Important Questions):", data);
+            return res.status(502).json({
+                success: false,
+                message: "AI service is currently busy or unavailable. Please try again later."
+            });
+        }
 
         return res.json(
             JSON.parse(data.choices[0].message.content)

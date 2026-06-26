@@ -66,38 +66,41 @@ export default function ChatBox({ groupId, groupName }) {
   const isOwn = (msg) => msg.senderId === user?.userId || msg.senderId === user?.id;
 
   return (
-    <div className="chatbox" role="region" aria-label={`Chat for ${groupName}`}>
-      <div className="chatbox-header">
+    <div className="chat-container" role="region" aria-label={`Chat for ${groupName}`}>
+      <div className="chat-header">
         <div className="chatbox-header-dot" />
         <span className="chatbox-header-name">💬 {groupName} — Live Chat</span>
       </div>
 
-      <div className="chatbox-messages">
+      <div className="chat-messages">
         {messages.length === 0 && (
           <div className="chatbox-empty">
             <p>No messages yet. Say hello! 👋</p>
           </div>
         )}
         {messages.map((msg, i) => (
-          <div key={msg.id || i} className={`chat-message ${isOwn(msg) ? 'chat-own' : 'chat-other'}`}>
+          <div key={msg.id || i} className={`chat-msg ${isOwn(msg) ? 'me' : ''}`}>
             {!isOwn(msg) && (
-              <div className="chat-avatar">{getInitials(msg.senderId)}</div>
+              <div className="chat-msg-avatar">{getInitials(msg.senderId)}</div>
             )}
-            <div className="chat-bubble">
-              <p className="chat-text">{msg.content}</p>
-              <time className="chat-time">
-                {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-              </time>
+            <div className="chat-msg-bubble">
+              <div className="chat-msg-header">
+                <span className="chat-msg-author">{isOwn(msg) ? 'You' : getInitials(msg.senderId)}</span>
+                <time className="chat-msg-time">
+                  {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                </time>
+              </div>
+              <p className="chat-msg-content">{msg.content}</p>
             </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="chatbox-input-area" onSubmit={handleSend}>
+      <form className="chat-input-area chat-form" onSubmit={handleSend}>
         <input
           id={`chat-input-${groupId}`}
-          className="form-input chatbox-input"
+          className="form-input chat-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
@@ -107,7 +110,7 @@ export default function ChatBox({ groupId, groupName }) {
         />
         <button
           type="submit"
-          className="btn btn-primary chatbox-send-btn"
+          className="chat-send-btn"
           disabled={!input.trim() || sending}
           aria-label="Send message"
           id={`chat-send-${groupId}`}

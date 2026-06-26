@@ -11,8 +11,8 @@ const useDashStore = create((set) => ({
   fetch: async () => {
     set({ isLoading: true, error: null });
     try {
-      const data = await getDashboardData();
-      set({ data, isLoading: false });
+      const res = await getDashboardData();
+      set({ data: res?.data || res, isLoading: false });
     } catch (err) {
       set({ error: err.message, isLoading: false });
     }

@@ -97,7 +97,7 @@ const updateNote = async (req, res) => {
                 isArchived = COALESCE($8, isArchived),
                 updatedAt = $9
             WHERE id = $10 AND userid = $11
-            RETURNING *;
+            RETURNING id, userid as "userId", groupid as "groupId", createdby as "createdBy", name, subject, topic, content, contenttype as "contentType", topicimportance as "topicImportance", tags, originalfilename as "originalFileName", storedfilename as "storedFileName", cloudinarypublicid as "cloudinaryPublicId", cloudinaryurl as "cloudinaryUrl", filesize as "fileSize", mimetype as "mimeType", isarchived as "isArchived", createdat as "createdAt", updatedat as "updatedAt";
         `;
 
         const values = [name, subject, topic, content, contentType, topicImportance, tags, isArchived, now, id, userId];

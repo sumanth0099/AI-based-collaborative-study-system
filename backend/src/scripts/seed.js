@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 const apNames = [
     "Venkatesh Reddy", "Srinivas Rao", "Lakshmi Prasanna", "Surya Prakash", "Ravi Teja",
-    "Swathi Naidu", "Krishna Vamsi", "Ramya Krishna", "Harsha Vardhan", "Anusha Chowdary",
+    "venkat Naidu", "Krishna Vamsi", "Ramya Krishna", "Harsha Vardhan", "Anusha Chowdary",
     "Karthik Varma", "Divya Sree", "Mahesh Babu", "Bhavani Shankar", "Kiran Kumar"
 ];
 
@@ -23,7 +23,7 @@ async function seedDB() {
         console.log("Starting advanced database seed...");
 
         // Note: Using CASCADE would clear all tables
-        // await pool.query('TRUNCATE TABLE quiz_attempts, group_join_requests, notifications, group_messages, study_group_members, friend_requests, friends, notes, study_groups, users CASCADE');
+        await pool.query('TRUNCATE TABLE quiz_attempts, group_join_requests, notifications, group_messages, study_group_members, friend_requests, friends, notes, study_groups, users CASCADE');
 
         const passwordHash = await bcrypt.hash('password123', 10);
         const users = [];

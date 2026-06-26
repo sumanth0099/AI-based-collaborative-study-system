@@ -2,7 +2,7 @@ const createID = require("../utils/generateuuid.js");
 const pool = require("../config.js");
 const socketManager = require("../socketManager");
 // const { json } = require("express");
-const io = socketManager.getIO();
+// const io = socketManager.getIO(); // Removed initialization; will fetch dynamically
 const { userSocketMap } = socketManager;
 
 
@@ -108,13 +108,13 @@ const postFriendRequest = async (req, res) => {
         recipientId,
         "friend_request",
         `You have a new friend request from ${requesterName}`,
-        Boolean(socketId)
+        false
       ]
     );
 
     // Realtime notification
     if (socketId) {
-      io.to(socketId).emit("friend_request", {
+      socketManager.getIO().to(socketId).emit("friend_request", {
         from: requesterName,
         requesterId
       });
@@ -183,12 +183,12 @@ const handleFriendRequest = async (req, res) => {
               senderid,
               "friend_request_accepted",
               "Your friend request was accepted",
-              Boolean(senderSocket),
+              false,
             ]
           );
     
           if (senderSocket) {
-            io.to(senderSocket).emit("friend_request_accepted", {
+            socketManager.getIO().to(senderSocket).emit("friend_request_accepted", {
               from: receiverid,
             });
           }
@@ -213,12 +213,12 @@ const handleFriendRequest = async (req, res) => {
               senderid,
               "friend_request_rejected",
               "Your friend request was rejected",
-              Boolean(senderSocket),
+              false,
             ]
           );
     
           if (senderSocket) {
-            io.to(senderSocket).emit("friend_request_rejected", {
+            socketManager.getIO().to(senderSocket).emit("friend_request_rejected", {
               from: receiverid,
             });
           }
@@ -302,7 +302,7 @@ const handleFriendRequest = async (req, res) => {
         }
     
         const query = `
-          SELECT id, name, email, is_verified, createdAt,avatar
+          SELECT id, name, email, is_verified, created_at AS "createdAt", avatar
           FROM users
           WHERE id != $1
         `;
@@ -360,7 +360,7 @@ const handleFriendRequest = async (req, res) => {
             email,
             is_verified,
             avatar,
-            createdAt AS "createdAt"
+            created_at AS "createdAt"
           FROM users
           WHERE id != $1
             AND name ILIKE $2

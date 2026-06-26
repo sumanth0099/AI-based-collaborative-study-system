@@ -21,6 +21,10 @@ const useAIStore = create((set, get) => ({
   summary: null,
   isGeneratingSummary: false,
 
+  // Important Questions
+  importantQuestions: null,
+  isGeneratingImportantQuestions: false,
+
   error: null,
 
   // ─── Quiz ────────────────────────────────────────────
@@ -113,6 +117,19 @@ const useAIStore = create((set, get) => ({
   },
 
   clearSummary: () => set({ summary: null }),
+
+  // ─── Important Questions ──────────────────────────────
+  generateImportantQuestions: async (id, topic) => {
+    set({ isGeneratingImportantQuestions: true, error: null, importantQuestions: null });
+    try {
+      const data = await api.generateImportantQuestions(id, topic);
+      set({ importantQuestions: data?.questions || data, isGeneratingImportantQuestions: false });
+    } catch (err) {
+      set({ error: err.message, isGeneratingImportantQuestions: false });
+    }
+  },
+
+  clearImportantQuestions: () => set({ importantQuestions: null }),
 }));
 
 export default useAIStore;

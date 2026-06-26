@@ -13,8 +13,8 @@ const getMyNotificationHistory = async (req, res) => {
     try {
         const query = `
             SELECT * FROM notifications
-            WHERE user_id = $1
-            ORDER BY created_at DESC
+            WHERE receiverId = $1
+            ORDER BY createdAt DESC
         `;
         const result = await pool.query(query, [userId]);
         const notifications = result.rows;
@@ -22,7 +22,7 @@ const getMyNotificationHistory = async (req, res) => {
             `
             UPDATE notifications
             SET is_sent = true
-            WHERE user_id = $1
+            WHERE receiverId = $1
               AND is_sent = false
             `,
             [userId]
@@ -48,32 +48,14 @@ const getNewNotification = async (req, res) => {
         `
         SELECT *
         FROM notifications
-        WHERE user_id = $1
+        WHERE receiverId = $1
           AND is_sent = false
-        ORDER BY created_at DESC
+        ORDER BY createdAt DESC
         `,
         [userId]
       );
   
       const notifications = result.rows;
-  
-      if (notifications.length === 0) {
-        return res.status(200).json({
-          success: true,
-          count: 0,
-          notifications: []
-        });
-      }
-  
-      await pool.query(
-        `
-        UPDATE notifications
-        SET is_sent = true
-        WHERE user_id = $1
-          AND is_sent = false
-        `,
-        [userId]
-      );
   
       return res.status(200).json({
         success: true,
@@ -99,9 +81,9 @@ const getNewNotification = async (req, res) => {
     await pool.query(
       `
       UPDATE notifications
-      SET is_seen = true
+      SET is_sent = true
       WHERE receiverId = $1
-      AND is_seen = false
+      AND is_sent = false
       `,
       [userId]
     );
@@ -123,5 +105,5 @@ const getNewNotification = async (req, res) => {
 module.exports = {
     getMyNotificationHistory,
     getNewNotification,
-    
+    markNotificationsSeen
 }

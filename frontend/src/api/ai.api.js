@@ -18,3 +18,6 @@ export const chatWithAI = (id, topic, question) => post('/api/ai/chat', { id, to
 
 /** POST /api/ai/summary/generate */
 export const generateSummary = (id, topic) => post('/api/ai/summary/generate', { id, topic });
+
+/** POST /api/ai/important-questions/generate */
+export const generateImportantQuestions = (id, topic) => post('/api/ai/important-questions/generate', { id, topic });

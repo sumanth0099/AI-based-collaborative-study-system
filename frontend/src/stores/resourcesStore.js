@@ -13,7 +13,7 @@ const useResourcesStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await api.getAllResources();
-      set({ resources: Array.isArray(data) ? data : [], isLoading: false });
+      set({ resources: Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [], isLoading: false });
     } catch (err) {
       set({ error: err.message, isLoading: false });
     }

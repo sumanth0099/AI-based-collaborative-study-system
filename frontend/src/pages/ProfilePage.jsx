@@ -1,7 +1,7 @@
 // src/pages/ProfilePage.jsx
 import { useState } from 'react';
 import useAuthStore from '../stores/authStore.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './ProfilePage.css';
 
 export default function ProfilePage() {
@@ -81,10 +81,10 @@ export default function ProfilePage() {
               { href: '/notifications', icon: '🔔', label: 'Notifications' },
               { href: '/dashboard',     icon: '📊', label: 'Dashboard' },
             ].map(l => (
-              <a key={l.href} href={l.href} className="profile-quick-link glass-card">
+              <Link key={l.href} to={l.href} className="profile-quick-link glass-card">
                 <span>{l.icon}</span>
                 <span>{l.label}</span>
-              </a>
+              </Link>
             ))}
           </div>
         </div>

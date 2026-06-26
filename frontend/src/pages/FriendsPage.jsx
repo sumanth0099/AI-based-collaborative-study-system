@@ -1,5 +1,6 @@
 // src/pages/FriendsPage.jsx
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import useFriendsStore from '../stores/friendsStore.js';
 import './FriendsPage.css';
 
@@ -80,7 +81,10 @@ export default function FriendsPage() {
                   <strong>{f.username || f.name || 'User'}</strong>
                   <span className="friend-email">{f.email}</span>
                 </div>
-                <span className="badge badge-success">✓ Friend</span>
+                <div style={{display:'flex', gap:8, alignItems:'center'}}>
+                  <span className="badge badge-success">✓ Friend</span>
+                  <Link to={`/chat/${f.id||f.userId}`} className="btn btn-primary btn-sm" id={`chat-with-${f.id||f.userId}`}>Chat</Link>
+                </div>
               </div>
             ))
           )}
@@ -93,18 +97,18 @@ export default function FriendsPage() {
           {requests.length === 0 ? (
             <div className="friends-empty"><div style={{fontSize:'3rem'}}>📬</div><h3>No pending requests</h3></div>
           ) : requests.map((r) => (
-            <div key={r.id} className="friend-item">
+            <div key={r.request_id} className="friend-item">
               <div className="friend-avatar">{(r.sender_name||'?').charAt(0).toUpperCase()}</div>
               <div className="friend-info">
                 <strong>{r.sender_name || 'User'}</strong>
                 <span className="friend-email">Sent you a friend request</span>
               </div>
               <div style={{display:'flex',gap:8}}>
-                <button className="btn btn-success btn-sm" onClick={()=>doAction(r.id,'accept')} disabled={actions[r.id]==='accept'} id={`accept-req-${r.id}`}>
-                  {actions[r.id]==='accept'?<div className="spinner spinner-sm"/>:'✓ Accept'}
+                <button className="btn btn-success btn-sm" onClick={()=>doAction(r.request_id,'accept')} disabled={actions[r.request_id]==='accept'} id={`accept-req-${r.request_id}`}>
+                  {actions[r.request_id]==='accept'?<div className="spinner spinner-sm"/>:'✓ Accept'}
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={()=>doAction(r.id,'reject')} disabled={actions[r.id]==='reject'} id={`reject-req-${r.id}`}>
-                  {actions[r.id]==='reject'?<div className="spinner spinner-sm"/>:'✗ Reject'}
+                <button className="btn btn-danger btn-sm" onClick={()=>doAction(r.request_id,'reject')} disabled={actions[r.request_id]==='reject'} id={`reject-req-${r.request_id}`}>
+                  {actions[r.request_id]==='reject'?<div className="spinner spinner-sm"/>:'✗ Reject'}
                 </button>
               </div>
             </div>

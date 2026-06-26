@@ -8,7 +8,11 @@ const createID = require("../utils/generateuuid.js");
  * CLOUDINARY CONFIG
  * ---------------------------
  */
-cloudinary.config({
+// Validate Cloudinary configuration at load time
++if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
++  console.error("Cloudinary configuration missing! Ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are set in .env");
++}
+
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -20,20 +24,23 @@ cloudinary.config({
  * ---------------------------
  */
 const uploadToCloudinary = (fileBuffer) => {
-    return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-            {
-                folder: "resources",
-                resource_type: "auto",
-            },
-            (error, result) => {
-                if (error) return reject(error);
-                resolve(result);
-            }
-        );
-
-        stream.end(fileBuffer);
-    });
+  // Guard against missing credentials before attempting upload
+  if (!process.env.CLOUDINARY_API_KEY) {
+    return Promise.reject(new Error("Cloudinary API key is not configured"));
+  }
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "resources",
+        resource_type: "auto",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    stream.end(fileBuffer);
+  });
 };
 
 const deleteFromCloudinary = (publicId) => {

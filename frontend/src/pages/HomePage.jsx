@@ -14,8 +14,8 @@ const useHomeStore = create((set) => ({
   fetch: async () => {
     set({ isLoading: true, error: null });
     try {
-      const data = await getHomeData();
-      set({ data, isLoading: false });
+      const res = await getHomeData();
+      set({ data: res?.data || res, isLoading: false });
     } catch (err) {
       set({ error: err.message, isLoading: false });
     }
@@ -80,28 +80,39 @@ export default function HomePage() {
             <StatCard
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
               label="Total Notes"
-              value={data.stats?.notesCount ?? data.notesCount}
+              value={data.stats?.notes ?? data.notesCount}
               color="rgba(124,58,237,0.3)"
             />
             <StatCard
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>}
               label="Study Groups"
-              value={data.stats?.groupsCount ?? data.groupsCount}
+              value={data.stats?.groups ?? data.groupsCount}
               color="rgba(6,182,212,0.3)"
-            />
-            <StatCard
-              icon={<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>}
-              label="AI Insight"
-              value={data.aiInsight ?? '✨'}
-              color="rgba(245,158,11,0.3)"
             />
             <StatCard
               icon={<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
               label="Friends"
-              value={data.stats?.friendsCount ?? '—'}
+              value={data.stats?.friends ?? '—'}
               color="rgba(16,185,129,0.3)"
             />
+            <StatCard
+              icon={<svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>}
+              label="Unread Notifications"
+              value={data.stats?.unreadNotifications ?? 0}
+              color="rgba(245,158,11,0.3)"
+            />
           </div>
+
+          {/* AI Insight Banner */}
+          {data.aiInsight && (
+            <div className="home-ai-insight glass-card">
+              <span className="home-ai-insight-icon">🤖</span>
+              <div>
+                <p className="home-ai-insight-label">AI Study Tip</p>
+                <p className="home-ai-insight-text">{data.aiInsight}</p>
+              </div>
+            </div>
+          )}
 
           <div className="home-grid">
             {/* Recent Notes */}
