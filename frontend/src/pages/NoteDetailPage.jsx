@@ -35,7 +35,7 @@ export default function NoteDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Archive this note?')) return;
+    if (!confirm('Delete this note?')) return;
     await deleteNote(id);
     navigate('/notes');
   };

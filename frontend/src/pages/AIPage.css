@@ -8,10 +8,21 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 4px;
+  justify-content: space-between;
   overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none;
+}
+
+.ai-tabs::-webkit-scrollbar {
+  display: none;
 }
 .ai-tab-btn {
-  flex: 1;
+  flex: 0 0 auto;   /* instead of flex:1 */
+  min-width: 140px;
+
   padding: 10px 20px;
   border-radius: var(--radius-md);
   border: none;
@@ -138,3 +149,90 @@
 }
 .ai-summary-result h4 { margin: 0 0 var(--space-sm); color: var(--text-accent); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
 .ai-summary-result p { color: var(--text-secondary); line-height: 1.8; font-size: 0.9rem; margin: 0; }
+
+/* ===========================
+   Mobile Responsive
+=========================== */
+
+@media (max-width: 768px) {
+
+  .ai-page {
+    gap: 1rem;
+  }
+
+  .ai-panel-card {
+    padding: 1rem;
+  }
+
+  .ai-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 4px;
+  }
+
+  .ai-tab-btn {
+    flex: 0 0 auto;
+    min-width: 120px;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+  }
+
+  .ai-topic-grid {
+    display: flex;
+    overflow-x: auto;
+    /* flex-wrap: nowrap; */
+    align-items: center;
+    justify-content: center;
+    gap: .6rem;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .ai-topic-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ai-topic-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .ai-flashcard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flashcard-full {
+    height: 160px;
+  }
+
+  .ai-chat-card {
+    min-height: auto;
+  }
+
+  .ai-chat-history {
+    min-height: 250px;
+    max-height: 320px;
+  }
+
+  .ai-chat-bubble {
+    max-width: 100%;
+    font-size: .88rem;
+  }
+
+  .quiz-option {
+    font-size: .9rem;
+  }
+
+  .quiz-result-score {
+    font-size: 3rem;
+  }
+
+  .ai-summary-result,
+  .ai-important-questions-result {
+    padding: 1rem;
+  }
+}

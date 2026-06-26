@@ -1,27 +1,50 @@
-// src/stores/uiStore.js
-import { create } from 'zustand';
+import { create } from "zustand";
 
-const useUIStore = create((set, get) => ({
-  sidebarOpen: true,
-  activeModal: null,   // string modal ID or null
-  toasts: [],          // { id, type, message, duration }
+const useUIStore = create((set) => ({
+  // Closed by default on mobile
+  sidebarOpen: window.innerWidth > 768,
 
-  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+  activeModal: null,
+  toasts: [],
 
-  openModal: (modalId) => set({ activeModal: modalId }),
-  closeModal: () => set({ activeModal: null }),
+  toggleSidebar: () =>
+    set((state) => ({
+      sidebarOpen: !state.sidebarOpen,
+    })),
 
-  /** Show a toast notification */
-  showToast: (message, type = 'info', duration = 4000) => {
-    const id = Date.now() + Math.random();
-    set((s) => ({ toasts: [...s.toasts, { id, message, type, duration }] }));
+  setSidebarOpen: (open) =>
+    set({
+      sidebarOpen: open,
+    }),
+
+  openModal: (id) =>
+    set({
+      activeModal: id,
+    }),
+
+  closeModal: () =>
+    set({
+      activeModal: null,
+    }),
+
+  showToast: (message, type = "info", duration = 4000) => {
+    const id = Date.now();
+
+    set((state) => ({
+      toasts: [...state.toasts, { id, message, type, duration }],
+    }));
+
     setTimeout(() => {
-      set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
-    }, duration + 300);
+      set((state) => ({
+        toasts: state.toasts.filter((t) => t.id !== id),
+      }));
+    }, duration);
   },
 
-  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
+  removeToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
+    })),
 }));
 
 export default useUIStore;
