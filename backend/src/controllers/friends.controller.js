@@ -154,7 +154,7 @@ const handleFriendRequest = async (req, res) => {
           return res.status(404).json({ message: "Friend request not found" });
         }
     
-        const { senderId, receiverId } = reqResult.rows[0];
+        const { senderid: senderId, receiverid: receiverId } = reqResult.rows[0];
     
         const senderSocket = userSocketMap.get(String(senderId));
     

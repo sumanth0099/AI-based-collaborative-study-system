@@ -9,6 +9,8 @@ app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:5174"],
   credentials: true
 }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const { Server } = require("socket.io");
 const socketManager = require("./src/socketManager");
 const pool = require("./src/config.js");
@@ -184,17 +186,48 @@ io.on("connection", (socket) => {
         sentAt: new Date()
       };
   
+      // Check if there is already an unseen notification from this user
+      const existingNotif = await pool.query(
+        `
+        SELECT id
+        FROM notifications
+        WHERE receiverId = $1
+          AND type = $2
+          AND is_sent = false
+          AND message LIKE $3
+        `,
+        [receiverId, "tried_to_reach_out", `%${socket.username}%`]
+      );
+
+      if (existingNotif.rowCount === 0) {
+        await pool.query(
+          `
+          INSERT INTO notifications
+          (id, receiverId, type, message, is_sent, createdAt)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          `,
+          [
+            createID(),
+            receiverId,
+            "tried_to_reach_out",
+            `User ${socket.username} tried to reach you`,
+            false,
+            new Date()
+          ]
+        );
+      }
+
       // Send to receiver
       io.to(receiverSocketId).emit(
         "receive_private_message",
         payload
       );
       // Emit a notification event for the receiver
-      socketManager.getIO().to(receiverSocketId).emit("new_notifications", {
-        type: "private_message",
+      socketManager.getIO().to(receiverSocketId).emit("new_notification", {
+        type: "tried_to_reach_out",
         from: socket.username,
         senderId: socket.userId,
-        message: payload.message
+        message: `User ${socket.username} tried to reach you`
       });
       // Acknowledge sender
       socket.emit(
