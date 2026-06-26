@@ -154,9 +154,9 @@ const handleFriendRequest = async (req, res) => {
           return res.status(404).json({ message: "Friend request not found" });
         }
     
-        const { senderid, receiverid } = reqResult.rows[0];
+        const { senderId, receiverId } = reqResult.rows[0];
     
-        const senderSocket = userSocketMap.get(String(senderid));
+        const senderSocket = userSocketMap.get(String(senderId));
     
         // ======================
         // ACCEPT REQUEST
@@ -167,7 +167,7 @@ const handleFriendRequest = async (req, res) => {
             [requestId]
           );
     
-          const [userOneId, userTwoId] = [senderid, receiverid].sort();
+          const [userOneId, userTwoId] = [senderId, receiverId].sort();
     
           await pool.query(
             `INSERT INTO friends (id, userOneId, userTwoId)
@@ -180,7 +180,7 @@ const handleFriendRequest = async (req, res) => {
              VALUES ($1, $2, $3, $4, $5, NOW())`,
             [
               createID(),
-              senderid,
+              senderId,
               "friend_request_accepted",
               "Your friend request was accepted",
               false,
@@ -189,7 +189,7 @@ const handleFriendRequest = async (req, res) => {
     
           if (senderSocket) {
             socketManager.getIO().to(senderSocket).emit("friend_request_accepted", {
-              from: receiverid,
+              from: receiverId,
             });
           }
     
@@ -210,7 +210,7 @@ const handleFriendRequest = async (req, res) => {
              VALUES ($1, $2, $3, $4, $5, NOW())`,
             [
               createID(),
-              senderid,
+              senderId,
               "friend_request_rejected",
               "Your friend request was rejected",
               false,
@@ -219,7 +219,7 @@ const handleFriendRequest = async (req, res) => {
     
           if (senderSocket) {
             socketManager.getIO().to(senderSocket).emit("friend_request_rejected", {
-              from: receiverid,
+              from: receiverId,
             });
           }
     
