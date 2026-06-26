@@ -15,9 +15,9 @@ function formatSize(bytes) {
 export default function ResourcesPage() {
   const { resources, isLoading, isUploading, uploadResource, fetchResources, deleteResource, shareResource } = useResourcesStore();
   const { friends, fetchFriends } = useFriendsStore();
-  const [shareModal, setShareModal] = useState(null); // resourceId
-  const [shareUserId, setShareUserId] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [shareModal, setShareModal] = useState(null); // Resource ID to share
+  const [shareUserId, setShareUserId] = useState('');
 
   useEffect(() => { fetchResources(); fetchFriends(); }, []);
 
@@ -39,10 +39,15 @@ export default function ResourcesPage() {
   };
 
   const handleShare = async () => {
-    if (!shareUserId) return;
-    await shareResource(shareModal, shareUserId);
-    setShareModal(null);
-    setShareUserId('');
+    if (!shareUserId || !shareModal) return;
+    try {
+      await shareResource(shareModal, shareUserId);
+      setShareModal(null);
+      setShareUserId('');
+      alert('Resource shared successfully!');
+    } catch (err) {
+      alert('Failed to share resource: ' + err.message);
+    }
   };
 
   return (
@@ -58,6 +63,7 @@ export default function ResourcesPage() {
         onDragOver={e => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
+        onClick={() => !isUploading && document.getElementById('file-picker').click()}
         id="upload-drop-zone"
       >
         {isUploading ? (
@@ -94,9 +100,23 @@ export default function ResourcesPage() {
               </div>
               <div className="res-card-actions">
                 {r.cloudinaryUrl && (
-                  <a href={r.cloudinaryUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-sm" id={`view-res-${r.id}`}>View</a>
+                  <a 
+                    href={r.cloudinaryUrl.replace('/upload/', '/upload/fl_attachment/')} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn btn-secondary btn-sm" 
+                    id={`download-res-${r.id}`}
+                  >
+                    Download
+                  </a>
                 )}
-                <button className="btn btn-ghost btn-sm" onClick={() => setShareModal(r.id)} id={`share-res-${r.id}`}>Share</button>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => setShareModal(r.id)} 
+                  id={`share-res-btn-${r.id}`}
+                >
+                  Share
+                </button>
                 <button className="btn btn-danger btn-sm" onClick={() => handleDelete(r.id)} id={`del-res-${r.id}`}>Delete</button>
               </div>
             </div>

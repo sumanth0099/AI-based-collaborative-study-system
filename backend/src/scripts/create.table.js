@@ -165,6 +165,19 @@
     );
     `;
 
+    const createNoteSharesTable = `
+    CREATE TABLE IF NOT EXISTS note_shares (
+        id UUID PRIMARY KEY,
+        noteId UUID NOT NULL,
+        sharedWithUserId UUID NOT NULL,
+        sharedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY (noteId) REFERENCES notes(id) ON DELETE CASCADE,
+        FOREIGN KEY (sharedWithUserId) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE(noteId, sharedWithUserId)
+    );
+    `;
+
     const createQuizAttemptsTable = `
 CREATE TABLE IF NOT EXISTS quiz_attempts (
     id UUID PRIMARY KEY,
@@ -260,6 +273,9 @@ const createIndexes = `
 
         await pool.query(groupJoinRequests);
         console.log("Group Join Requests table ready")
+
+        await pool.query(createNoteSharesTable);
+        console.log("Note Shares table ready");
 
         await pool.query(createQuizAttemptsTable);
         console.log("Quiz Attempts table ready");

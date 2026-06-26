@@ -92,13 +92,24 @@ const leaveGroup = async (req, res) => {
 
         const role = memberResult.rows[0].role;
 
-        // Owner leaves -> delete group
+        // Check total members remaining
+        const totalMembersResult = await pool.query(
+            `SELECT COUNT(*) FROM study_group_members WHERE groupid = $1`,
+            [groupId]
+        );
+        const totalMembers = parseInt(totalMembersResult.rows[0].count);
+
+        // Owner leaves
         if (role === "owner") {
+            if (totalMembers > 1) {
+                return res.status(403).json({
+                    error: "You are the owner. Please transfer ownership to another member before leaving."
+                });
+            }
+            
+            // Last person (owner) leaves -> delete group
             await pool.query(
-                `
-                DELETE FROM study_groups
-                WHERE id = $1
-                `,
+                `DELETE FROM study_groups WHERE id = $1`,
                 [groupId]
             );
 

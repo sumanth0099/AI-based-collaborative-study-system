@@ -14,7 +14,8 @@ const socketManager = require("./src/socketManager");
 const pool = require("./src/config.js");
 const createID = require("./src/utils/generateuuid.js");
 
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ---------------- SESSION ----------------
 const sessionMiddleware = session({
@@ -240,15 +241,18 @@ io.on("connection", (socket) => {
         });
       }
       const groupResult = await pool.query(
-        `
-        SELECT name
-        FROM study_groups
-        WHERE id = $1
-        `,
-        [groupId]
-        );
+          `SELECT name FROM study_groups WHERE id = $1`,
+          [groupId]
+      );
 
-const groupName = groupResult.rows[0].name;
+      if (groupResult.rows.length === 0) {
+          return socket.emit("message_error", {
+              success: false,
+              message: "Group not found"
+          });
+      }
+
+      const groupName = groupResult.rows[0].name;
       // Verify sender belongs to group
       const memberResult = await pool.query(
         `
@@ -298,10 +302,10 @@ AND userid = $2
       // Get all members except sender
       const membersResult = await pool.query(
         `
-  SELECT userId AS "userId"
+  SELECT userid AS "userId"
   FROM study_group_members
-  WHERE groupId = $1
-    AND userId <> $2
+  WHERE groupid = $1
+    AND userid <> $2
   `,
         [groupId, socket.userId]
       );
@@ -337,6 +341,14 @@ AND userid = $2
             "receive_group_message",
             savedMessage
           );
+          // Also emit new_notifications so the badge/toast updates
+          io.to(receiverSocketId).emit("new_notifications", {
+            type: "group_message",
+            from: socket.username,
+            groupName: groupName,
+            groupId: groupId,
+            message: message.trim()
+          });
         }
       }
 

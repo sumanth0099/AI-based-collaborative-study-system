@@ -57,9 +57,24 @@ const sendJoinRequest = async (req, res) => {
                 });
             }
             if (status === 'approved') {
-                return res.status(400).json({
-                    error: "You are already a member"
-                });
+                // If the user is currently NOT a member, allow them to re-request
+                // This handles cases where they were approved, joined, then LEFT.
+                const actuallyMember = await pool.query(
+                    "SELECT 1 FROM study_group_members WHERE groupid = $1 AND userid = $2",
+                    [groupId, userId]
+                );
+                
+                if (actuallyMember.rowCount === 0) {
+                    await pool.query(
+                        "DELETE FROM group_join_requests WHERE groupid = $1 AND userid = $2",
+                        [groupId, userId]
+                    );
+                    // Old approved request removed, proceed to insert a new pending one below
+                } else {
+                    return res.status(400).json({
+                        error: "You are already a member"
+                    });
+                }
             }
             // If rejected, remove old one so a new one can be inserted
             if (status === 'rejected') {

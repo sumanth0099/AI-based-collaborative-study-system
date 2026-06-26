@@ -49,6 +49,7 @@ function GuestRoute({ children }) {
 }
 
 export default function App() {
+  const { isAuthenticated } = useAuthStore();
   const fetchMe = useAuthStore((s) => s.fetchMe);
   const showToast = useUIStore((s) => s.showToast);
   const fetchUnseen = useNotificationsStore((s) => s.fetchUnseen);
@@ -56,6 +57,12 @@ export default function App() {
   useEffect(() => {
     fetchMe();
   }, [fetchMe]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnseen();
+    }
+  }, [isAuthenticated, fetchUnseen]);
 
   useEffect(() => {
     const handleGlobalNotification = (event, type) => {
