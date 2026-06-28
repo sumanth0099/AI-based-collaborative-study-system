@@ -348,6 +348,12 @@ AND userid = $2
 
         const receiverId = member.userId;
         const receiverSocketId = userSocketMap.get(receiverId);
+        const messageToEmit = {
+          ...savedMessage,
+          senderId: savedMessage.senderid || savedMessage.senderId,
+          groupId: savedMessage.groupid || savedMessage.groupId,
+          sender_name: socket.username || 'Unknown'
+        };
 
         // Always save notification to DB so history/unseen counts work
         await pool.query(
@@ -373,7 +379,7 @@ AND userid = $2
         if (receiverSocketId) {
           io.to(receiverSocketId).emit(
             "receive_group_message",
-            savedMessage
+            messageToEmit
           );
           // Also emit new_notifications so the badge/toast updates
           io.to(receiverSocketId).emit("new_notifications", {
@@ -387,9 +393,15 @@ AND userid = $2
       }
 
       // acknowledge sender
+      const messageToEmit = {
+        ...savedMessage,
+        senderId: savedMessage.senderid || savedMessage.senderId,
+        groupId: savedMessage.groupid || savedMessage.groupId,
+        sender_name: socket.username || 'Unknown'
+      };
       socket.emit(
         "group_message_sent",
-        savedMessage
+        messageToEmit
       );
 
     } catch (err) {
