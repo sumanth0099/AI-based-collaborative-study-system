@@ -136,7 +136,7 @@ export default function ResourcesPage() {
             />
 
             <span className="upload-hint">
-              PDF, Word, PowerPoint, TXT supported
+              Word, PowerPoint, TXT supported
             </span>
           </>
         )}
