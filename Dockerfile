@@ -6,7 +6,7 @@
     COPY frontend/package*.json ./
     RUN npm install
     
-    COPY frontend/ .
+    COPY frontend/ ./
     RUN npm run build
     
     
@@ -16,15 +16,13 @@
     WORKDIR /app/backend
     
     COPY backend/package*.json ./
-    RUN npm install
+    RUN npm install --omit=dev
     
-    # Copy backend code
-    COPY backend/ .
+    COPY backend/ ./
     
-    # Copy frontend build into backend
+    # Copy frontend build into backend public folder
     COPY --from=frontend-build /app/frontend/dist ./public
     
-    # Make start script executable
     RUN chmod +x start.sh
     
     EXPOSE 3000
