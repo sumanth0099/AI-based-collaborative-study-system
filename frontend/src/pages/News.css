@@ -1,0 +1,203 @@
+.news-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  
+  .news-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .news-header h1 {
+    font-size: clamp(1.8rem, 5vw, 2.4rem);
+    margin-bottom: 0.5rem;
+  }
+  
+  .news-header p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  /* ====================== TABS ====================== */
+  .news-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+  
+  .news-tab {
+    padding: 10px 18px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.25s;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  
+  .news-tab:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .news-tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  
+  /* ====================== GRID ====================== */
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  /* News Card */
+  .news-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+  }
+  
+  .news-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  .news-source {
+    font-size: 0.8rem;
+    color: var(--text-accent);
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .news-title {
+    font-size: 1.1rem;
+    line-height: 1.45;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .news-description {
+    color: var(--text-secondary);
+    line-height: 1.65;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .news-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  
+  .news-date {
+    color: var(--text-muted);
+  }
+  
+  .news-read-more {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  
+  /* ====================== STATES ====================== */
+  .news-loading,
+  .news-empty,
+  .news-error {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+  }
+  
+  .news-error button {
+    margin-top: 1rem;
+    padding: 10px 24px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  /* ====================== RESPONSIVE ====================== */
+  
+  @media (max-width: 1024px) {
+    .news-grid {
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .news-page {
+      padding: 0 12px;
+    }
+  
+    .news-header {
+      margin-bottom: 1.5rem;
+    }
+  
+    .news-tabs {
+      gap: 6px;
+      padding-bottom: 0.8rem;
+    }
+  
+    .news-tab {
+      padding: 9px 16px;
+      font-size: 0.9rem;
+    }
+  
+    .news-card {
+      padding: 1.25rem;
+    }
+  
+    .news-title {
+      font-size: 1.05rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .news-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  
+    .news-card {
+      padding: 1.1rem;
+    }
+  
+    .news-header h1 {
+      font-size: 1.75rem;
+    }
+  }

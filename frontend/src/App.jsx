@@ -25,6 +25,7 @@ const PrivateChatPage  = lazy(() => import('./pages/PrivateChatPage.jsx'));
 const AIPage           = lazy(() => import('./pages/AIPage.jsx'));
 const NotificationsPage= lazy(() => import('./pages/NotificationsPage.jsx'));
 const ProfilePage      = lazy(() => import('./pages/ProfilePage.jsx'));
+const NewsPage         = lazy(() => import('./pages/News.jsx'));     // ← NEW
 
 function PageLoader() {
   return (
@@ -82,8 +83,6 @@ export default function App() {
     socket.on('friend_request_rejected', (e) => handleGlobalNotification(e, 'friend_request_rejected'));
     socket.on('receive_private_message', (e) => handleGlobalNotification(e, 'private_message'));
     
-    // We don't trigger toast for group_message here to avoid duplicate if user is in chat,
-    // but we do update unseen count.
     socket.on('receive_group_message', (e) => {
       fetchUnseen();
     });
@@ -127,6 +126,7 @@ export default function App() {
             <Route path="ai"            element={<AIPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="profile"       element={<ProfilePage />} />
+            <Route path="news"          element={<NewsPage />} />        {/* ← NEW */}
           </Route>
 
           {/* Catch all */}

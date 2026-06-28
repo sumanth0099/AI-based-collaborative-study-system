@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/dashboard',     label: 'Dashboard',     icon: 'chart' },
   { to: '/notes',         label: 'Notes',         icon: 'notes' },
   { to: '/resources',     label: 'Resources',     icon: 'file' },
+  { to: '/news',          label: 'News',          icon: 'news' },        // ← NEW
   { to: '/groups',        label: 'All Groups',    icon: 'group' },
   { to: '/my-groups',     label: 'My Groups',     icon: 'mygroup' },
   { to: '/friends',       label: 'Friends',       icon: 'friends' },
@@ -43,6 +44,16 @@ const ICONS = {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/>
       <polyline points="13 2 13 9 20 9"/>
+    </svg>
+  ),
+
+  // === NEW NEWS ICON ===
+  news: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+      <path d="M9 10h6"/>
+      <path d="M9 15h6"/>
+      <path d="M3 6h18"/>
     </svg>
   ),
 

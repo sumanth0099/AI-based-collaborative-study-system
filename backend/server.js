@@ -35,6 +35,7 @@ app.use(sessionMiddleware);
 
 // ---------------- ROUTES ----------------
 app.use('/auth', require("./src/routes/auth.routes.js"));
+app.use("/api/news", require("./src/routes/news.routes.js"));
 app.use('/api/notes', require("./src/routes/note.routes.js"));
 app.use('/api/resources', require("./src/routes/resource.routes.js"));
 app.use('/api/group-members', require("./src/routes/studyGroupMemberRoutes.js"));
