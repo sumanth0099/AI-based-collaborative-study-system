@@ -22,10 +22,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+// Replace your old redisClient initialization block with this:
 const redisClient = redis.createClient({
   url: process.env.REDIS_URL
 });
+
+
+redisClient.on('error', (err) => {
+  console.error('⚠️ Redis Client Error (Prevented Crash):', err.message || err);
+});
+
+redisClient.on('connect', () => {
+  console.log('✅ Redis Client Connected');
+});
+
 redisClient.connect().catch(console.error);
+
+
 
 
 const store = new RedisStore({
