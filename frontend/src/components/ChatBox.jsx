@@ -58,12 +58,16 @@ export default function ChatBox({ groupId, groupName }) {
     setInput('');
   };
 
-  const getInitials = (id) => {
-    if (user && (id === user.userId || id === user.id)) return 'Me';
-    return String(id).slice(0, 2).toUpperCase();
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return String(name).slice(0, 2).toUpperCase();
   };
 
-  const isOwn = (msg) => msg.senderId === user?.userId || msg.senderId === user?.id;
+  const isOwn = (msg) => {
+    const msgSenderId = msg.senderId || msg.senderid;
+    const currentUserId = user?.userId || user?.id;
+    return msgSenderId && currentUserId && String(msgSenderId) === String(currentUserId);
+  };
 
   return (
     <div className="chat-container" role="region" aria-label={`Chat for ${groupName}`}>
@@ -81,13 +85,17 @@ export default function ChatBox({ groupId, groupName }) {
         {messages.map((msg, i) => (
           <div key={msg.id || i} className={`chat-msg ${isOwn(msg) ? 'me' : ''}`}>
             {!isOwn(msg) && (
-              <div className="chat-msg-avatar">{getInitials(msg.senderId)}</div>
+              <div className="chat-msg-avatar">
+                {getInitials(msg.sender_name || msg.senderName)}
+              </div>
             )}
             <div className="chat-msg-bubble">
               <div className="chat-msg-header">
-                <span className="chat-msg-author">{isOwn(msg) ? 'You' : getInitials(msg.senderId)}</span>
+                <span className="chat-msg-author">
+                  {isOwn(msg) ? 'You' : (msg.sender_name || msg.senderName || 'Member')}
+                </span>
                 <time className="chat-msg-time">
-                  {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  {msg.createdAt || msg.createdat ? new Date(msg.createdAt || msg.createdat).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                 </time>
               </div>
               <p className="chat-msg-content">{msg.content}</p>
