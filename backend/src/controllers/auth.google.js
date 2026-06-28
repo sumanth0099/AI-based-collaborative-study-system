@@ -1,5 +1,5 @@
 
-require("dotenv").config('./src');
+require("dotenv").config();
 const pool = require('../config.js');
   async function googleCallback(req,res){
     try {
@@ -100,7 +100,7 @@ const pool = require('../config.js');
           req.session.username = dbUser.name;
     
           // Redirect to frontend app after successful Google auth
-          const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+          const FRONTEND_URL = process.env.FRONTEND_URL ;
           res.redirect(`${FRONTEND_URL}/home`);
     } catch (error) {
         console.error("Google Callback Error:", error);
@@ -129,5 +129,3 @@ module.exports = {
     googleAuthRedirect
   };
 
-
-console.log(process.env.GOOGLE_CLIENT_ID);
