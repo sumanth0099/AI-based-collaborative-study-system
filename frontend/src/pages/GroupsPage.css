@@ -8,7 +8,6 @@
   flex-wrap: wrap;
 }
 .groups-header .page-header { margin-bottom: 0; }
-
 .groups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

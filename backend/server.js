@@ -5,6 +5,8 @@ const app = express();
 const session = require("express-session");
 const http = require("http");
 const cors = require("cors");
+const redis = require("redis");
+const { RedisStore } = require("connect-redis");
 app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:5174"],
   credentials: true
@@ -19,9 +21,35 @@ const createID = require("./src/utils/generateuuid.js");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+// Replace your old redisClient initialization block with this:
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL
+});
+
+
+redisClient.on('error', (err) => {
+  console.error('⚠️ Redis Client Error (Prevented Crash):', err.message || err);
+});
+
+redisClient.on('connect', () => {
+  console.log('✅ Redis Client Connected');
+});
+
+redisClient.connect().catch(console.error);
+
+
+
+
+const store = new RedisStore({
+  client: redisClient,
+  prefix: "sess:"
+});
+
 // ---------------- SESSION ----------------
 const sessionMiddleware = session({
-  secret: "mySuperSecretKey",
+  store,
+  secret: process.env.SESSION_SECRET||"default_secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -30,6 +58,7 @@ const sessionMiddleware = session({
     maxAge: 1000 * 60 * 60 * 24
   }
 });
+
 
 app.use(sessionMiddleware);
 
@@ -348,6 +377,12 @@ AND userid = $2
 
         const receiverId = member.userId;
         const receiverSocketId = userSocketMap.get(receiverId);
+        const messageToEmit = {
+          ...savedMessage,
+          senderId: savedMessage.senderid || savedMessage.senderId,
+          groupId: savedMessage.groupid || savedMessage.groupId,
+          sender_name: socket.username || 'Unknown'
+        };
 
         // Always save notification to DB so history/unseen counts work
         await pool.query(
@@ -373,7 +408,7 @@ AND userid = $2
         if (receiverSocketId) {
           io.to(receiverSocketId).emit(
             "receive_group_message",
-            savedMessage
+            messageToEmit
           );
           // Also emit new_notifications so the badge/toast updates
           io.to(receiverSocketId).emit("new_notifications", {
@@ -387,9 +422,15 @@ AND userid = $2
       }
 
       // acknowledge sender
+      const messageToEmit = {
+        ...savedMessage,
+        senderId: savedMessage.senderid || savedMessage.senderId,
+        groupId: savedMessage.groupid || savedMessage.groupId,
+        sender_name: socket.username || 'Unknown'
+      };
       socket.emit(
         "group_message_sent",
-        savedMessage
+        messageToEmit
       );
 
     } catch (err) {
