@@ -5,6 +5,8 @@ const app = express();
 const session = require("express-session");
 const http = require("http");
 const cors = require("cors");
+const redis = require("redis");
+const { RedisStore } = require("connect-redis");
 app.use(cors({
   origin: ["http://localhost:5173", "http://localhost:5174"],
   credentials: true
@@ -19,9 +21,22 @@ const createID = require("./src/utils/generateuuid.js");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL
+});
+redisClient.connect().catch(console.error);
+
+
+const store = new RedisStore({
+  client: redisClient,
+  prefix: "sess:"
+});
+
 // ---------------- SESSION ----------------
 const sessionMiddleware = session({
-  secret: "mySuperSecretKey",
+  store,
+  secret: process.env.SESSION_SECRET||"default_secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -30,6 +45,7 @@ const sessionMiddleware = session({
     maxAge: 1000 * 60 * 60 * 24
   }
 });
+
 
 app.use(sessionMiddleware);
 
