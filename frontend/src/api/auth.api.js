@@ -1,7 +1,7 @@
 // src/api/auth.api.js
 import { get, post } from './client.js';
 
-const GOOGLE_AUTH_URL = import.meta.env.VITE_GOOGLE_AUTH_URL || 'http://localhost:3000/auth/google';
+const GOOGLE_AUTH_URL = import.meta.env.VITE_GOOGLE_AUTH_URL 
 
 /** GET /auth/me */
 export const getMe = () => get('/auth/me');

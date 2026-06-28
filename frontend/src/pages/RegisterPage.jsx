@@ -5,7 +5,7 @@ import { z } from 'zod';
 import useAuthStore from '../stores/authStore.js';
 import './AuthPages.css';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const BASE_URL = import.meta.env.VITE_API_URL ;
 
 const registerSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
