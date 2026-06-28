@@ -290,4 +290,12 @@ const createIndexes = `
     }
     }
 
+    try {
     initDB();
+    }
+    catch (err) {  
+        console.log(err);
+    }
+    finally {
+        console.log("Database initialization script completed.");
+    }

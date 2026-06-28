@@ -155,4 +155,12 @@ async function seedDB() {
     }
 }
 
+try{
 seedDB();
+}
+catch(err){
+console.log(err.message);
+}
+finally{
+    console.log("Seeding script finished.");
+}

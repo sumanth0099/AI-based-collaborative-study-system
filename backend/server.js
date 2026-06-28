@@ -459,16 +459,16 @@ module.exports = {
   server
 };
 
-
 const path = require("path");
 
+
+// 2. Static files
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("*", (req, res) => {
+// 3. SPA fallback LAST (safe version)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
-
-// ---------------- START SERVER ----------------
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
